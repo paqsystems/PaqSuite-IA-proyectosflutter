@@ -1,0 +1,13 @@
+---
+description: Paso F1 — evidencia real antes de afirmar que la TR está hecha
+alwaysApply: false
+---
+
+# F1 — Verificación del agente
+
+Prompt: `prompts/f1-verificacion-agente.md`. Comando: `Hacé el paso F1`.
+
+Después de D (y E). Antes de F. No HU siguiente. No `Finalizado`.
+
+Si no se ejecutó una prueba, decirlo. Prohibido “debería funcionar”.
+

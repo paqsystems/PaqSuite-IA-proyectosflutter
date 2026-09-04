@@ -1,0 +1,16 @@
+---
+description: Estados permitidos en metadatos de HU y TR
+globs: docs/03-historias-usuario/**/*.md,docs/04-tareas/**/*.md
+alwaysApply: false
+---
+
+# Estado en HU y TR
+
+Valores: **Pendiente** | **Especificado** | **Pendiente de Revisión** | **Finalizado**.
+
+- Al crear/regenerar: `Pendiente`
+- Tras A1+C1 aptos y alcance cerrado: `Especificado` (agente puede proponerlo)
+- Tras ejecutar la TR (parte D): `Pendiente de Revisión`
+- **Finalizado:** solo el usuario
+
+No usar “Implementado” ni “Hecho”. El informe F no marca `Finalizado`.

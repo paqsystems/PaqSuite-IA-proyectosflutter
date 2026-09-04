@@ -1,0 +1,12 @@
+---
+description: Paso D1 — planificar la TR antes de tocar código
+alwaysApply: false
+---
+
+# D1 — Plan de implementación
+
+Prompt: `prompts/d1-planificar-tr.md`. Comando: `Hacé el paso D1`.
+
+No codear. Obligatorio en HU COMPLEJA. Parar si SPEC/HU/TR se contradicen.
+
+Impacto en este producto: PaqContracts / PaqGateway / PaqAgent / PaqAgentInstaller / tests / docs; Laravel solo en TANGO.

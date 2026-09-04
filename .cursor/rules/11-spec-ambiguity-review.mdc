@@ -1,0 +1,27 @@
+---
+description: Revisión de ambigüedad del SPEC (A1) antes de HU o de codear
+alwaysApply: false
+---
+
+# A1 — Ambigüedad del SPEC
+
+Principio: un SPEC está listo cuando dos personas no implementarían comportamiento distinto.
+
+Prompt: `prompts/a1-revision-ambiguedad-spec.md`. Comando: `Hacé el paso A1`.
+
+## Checklist
+
+1. Alcance in/out explícito
+2. Actores y repos (este vs TANGO)
+3. Flujo y errores (`offline`, `degraded`, `AGENT_OFFLINE`)
+4. Reglas verificables (sin “adecuado”, “rápido”)
+5. Datos: `empresas_conexion` vs SQL local; qué no se guarda en AWS
+6. Contratos: SignalR, job/`traceId`, estados D12
+7. Casos: agente caído, token inválido, tenant sin `agent_id`
+8. Criterios de aceptación testeables
+9. Trazabilidad a HU/TR
+10. Preguntas cerradas del informe 08: no reabrirlas
+
+## Bloqueo
+
+Ambigüedad crítica → no generar HU ni pasar a D. No inventar reglas: listar alternativas y preguntar.

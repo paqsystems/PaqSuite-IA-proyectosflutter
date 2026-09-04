@@ -1,0 +1,67 @@
+---
+description: Dispatcher Open-Spec AGENTE-GATEWAY. Si el usuario dice paso A, A1, B, B1, C, C1, D1, D, E, F1 o F, ejecutar esa parte.
+alwaysApply: true
+---
+
+# Dispatcher — AGENTE-GATEWAY
+
+Modo **AGENTE-GATEWAY**. SPEC manda. Laravel del contrato: **TANGO**. Sin Tailscale ni fallback SQL en modo agente. Sin commit/push si no lo piden.
+
+**Comando canónico:** `Hacé el paso X` / `Hacer paso X` / `Paso X` / `Ejecutá el paso X` (X = A, A1, B, B1, C, C1, D1, D, E, F1, F).
+
+Si el mensaje nombra un paso, **ejecutar solo ese paso** (no encadenar el resto salvo que lo pidan).
+
+## Ciclo (orden alfabético = orden de trabajo)
+
+```text
+A → A1 → B → B1 → C → C1 → D1 → D → E → F1 → F
+```
+
+MVP conectividad (ya especificado): no rehacer A/B/C salvo cambio de alcance. Orden de **D**: D10 (HU-001 → 002 → 004 → 005 → 006 → 007 → 003 → 008).
+
+G–Q de BASE (CC masivo, i18n, Vite, Swagger host) **no aplican**.
+
+## Tabla de pasos
+
+| Paso | Qué es | Prompt | El agente |
+|------|--------|--------|-----------|
+| **A** | SPEC desde contexto | `prompts/a-spec-desde-contexto.md` | Crear/actualizar SPEC. **No** HU ni código. |
+| **A1** | Ambigüedad del SPEC | `prompts/a1-revision-ambiguedad-spec.md` | Informe en `docs/08-control/`. **No** HU ni código. |
+| **B** | HU desde SPEC | `prompts/b-hu-desde-spec.md` | HU solo desde SPEC. **No** TR ni código. |
+| **B1** | Enriquecer HU | `prompts/b1-enriquecer-hu.md` | Completar HU sin inventar. **No** TR ni código. |
+| **C** | TR desde SPEC+HU | `prompts/c-tr-desde-spec-y-hu.md` | TR implementable. **No** código. |
+| **C1** | Ambigüedad de la TR | `prompts/c1-revision-ambiguedad-tr.md` | Informe en `docs/08-control/`. **No** código. |
+| **D1** | Planificar TR | `prompts/d1-planificar-tr.md` | Plan. **No** código hasta que confirmen. Obligatorio si HU COMPLEJA. |
+| **D** | Ejecutar TR | `prompts/06-prompt-ejecutar-hu.md` | Una TR. Si es TANGO, no codear PHP aquí. Estado → `Pendiente de Revisión`. |
+| **E** | Tests | — | Este repo: `dotnet test PaqAgentGateway.sln`. TANGO: PHPUnit allá. Sin “debería pasar”. |
+| **F1** | Evidencia del agente | `prompts/f1-verificacion-agente.md` | ¿Hay pruebas reales? **No** HU siguiente. |
+| **F** | Docs ↔ código | `prompts/f-verificar-implementacion.md` | Completitud / corrección / coherencia. **No** marcar `Finalizado`. |
+
+A1 MVP ya corrida: `docs/08-control/08-informe-revision-ambiguedad.md`. No reabrir D1–D18 ni H3/H4/H8/H15.
+
+Kickoff de chat nuevo: `prompts/05-prompt-kickoff.md`.
+
+## Rutas
+
+| Qué | Dónde |
+|-----|--------|
+| SPEC canónico | `docs/02-producto/SPEC-AGW-*.md` |
+| Copia open-spec | `docs/05-open-spec/<epica>/` |
+| HU | `docs/03-historias-usuario/<epica>/` |
+| TR | `docs/04-tareas/<epica>/` |
+| Informes | `docs/08-control/` |
+| MVP | épica `001-Conectividad` |
+
+`TR-005` → `docs/04-tareas/001-Conectividad/TR-005-paqagent-servicio.md`.
+
+## Estados HU/TR
+
+`Pendiente` → `Especificado` (tras C1 apto) → `Pendiente de Revisión` (tras D) → `Finalizado` (solo humano).
+
+## Bloqueos
+
+- A1 **No apto** → no paso B
+- B1 **No lista para TR** → no paso C
+- C1 **No apto** → no paso D
+- F1/F **No aprobado** → no HU siguiente
+- Inventar requisitos, Tailscale, fallback modo agente, `dev-agent-token`

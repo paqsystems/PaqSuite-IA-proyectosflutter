@@ -7,7 +7,7 @@
 | Alcance | Fase 2 / SPEC-AGW-002 (borrador de dirección) |
 | Referencias | GEN-18 Framework (`SPEC-001-18`), SPEC-AGW-001 en esta carpeta |
 
-> Este documento conserva el análisis previo al scaffold. El MVP de conectividad (`01-SPEC-producto.md`, `02-decisiones-tecnicas.md`, HU/TR) **sigue intacto**.
+> Este documento conserva el análisis previo al scaffold. El MVP de conectividad (`docs/02-producto/SPEC-AGW-001-producto.md`, `docs/02-producto/decisiones-tecnicas.md`, HU/TR en `docs/03` y `docs/04`) **sigue intacto**.
 
 ---
 

@@ -1,0 +1,10 @@
+---
+description: Paso F — contrastar código contra SPEC, HU y TR (openspec-05)
+alwaysApply: false
+---
+
+# F — Docs ↔ código
+
+Prompt: `prompts/f-verificar-implementacion.md`. Comando: `Hacé el paso F`.
+
+Después de F1. Completitud / corrección / coherencia. No modificar archivos salvo pedido. No marcar `Finalizado`.

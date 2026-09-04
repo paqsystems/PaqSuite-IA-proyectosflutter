@@ -1,0 +1,12 @@
+---
+description: Paso B1 — enriquecer HU solo desde el SPEC, sin inventar alcance
+alwaysApply: false
+---
+
+# B1 — Enriquecer HU
+
+Prompt: `prompts/b1-enriquecer-hu.md`. Comando: `Hacé el paso B1`.
+
+SPEC gobierna la HU. No agregar reglas ausentes. Huecos = duda/supuesto. No TR ni código.
+
+Veredicto: `Lista para TR: Sí / No / Sí con observaciones`.

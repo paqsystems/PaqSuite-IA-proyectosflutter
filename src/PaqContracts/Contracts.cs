@@ -43,6 +43,7 @@ public sealed class AgentHeartbeat
     public DateTimeOffset TimestampUtc { get; set; }
 }
 
+/// <summary>Heartbeat 30 s / TTL online 90 s (default scaffold H8). No es lógica de HU.</summary>
 public static class AgentDefaults
 {
     public const int HeartbeatSeconds = 30;

@@ -1,0 +1,31 @@
+---
+description: Revisión de ambigüedad de la TR (C1) antes de implementar
+alwaysApply: false
+---
+
+# C1 — Ambigüedad de la TR
+
+Principio: la TR está lista cuando dos personas no construirían contratos ni tests distintos.
+
+Prompt: `prompts/c1-revision-ambiguedad-tr.md`. Comando: `Hacé el paso C1`.
+
+Leer TR + HU + SPEC + `docs/02-producto/decisiones-tecnicas.md`. **No codear.**
+
+## Checklist (este producto)
+
+1. Trazabilidad: TR no amplia HU/SPEC; dependencias y orden D10
+2. **Repo:** este (`src/`) vs `PaqSuite-IA-TANGO` vs ambos
+3. AC y Gherkin de la HU cubiertos por tareas de la TR
+4. Contratos: `traceId`, `jobId`, estados `success|failed|timeout|offline|degraded|cancelled`
+5. Gateway: hub `/agent-hub`, `/internal/*` + API key, online = heartbeat 30 s / TTL 90 s
+6. Agente: WSS saliente 443, lista blanca, SQL solo local
+7. Laravel: ruteo por `agent_id`; `host` no se usa en modo agente
+8. Tests o prueba e2e (infra) nombrados
+9. Preguntas humanas abiertas vs bloqueo
+10. Sin Tailscale, sin fallback SQL modo agente, sin `dev-agent-token`
+
+## Relación con D1
+
+C1 = ¿la TR está bien escrita? D1 = ¿cómo codear? Orden: **C1 → D1 → D**.
+
+Críticas o contradicción SPEC/HU → no pasar a D.

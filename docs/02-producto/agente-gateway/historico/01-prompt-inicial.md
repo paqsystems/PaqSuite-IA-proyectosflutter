@@ -1,17 +1,3 @@
-# [HISTÓRICO] Prompt inicial — junio 2026
+# Histórico movido
 
-**No usar para el desarrollo paralelo.** Queda como archivo de archivo.
-
-Este texto arrancó el esqueleto C# sin SPEC de producto, sin HU y sin criterio de corte (Gateway en AWS, sin Tailscale, instalador con token). El resultado está analizado en `docs/02-producto/agente-gateway/00-contexto-reformulacion.md`.
-
-Paquete vigente: `docs/02-producto/agente-gateway/README.md`.
-
----
-
-Necesito crear un agente local en C# .NET 8 como Worker Service instalable como Windows Service.
-
-El agente debe conectarse a un backend remoto mediante SignalR Client o WebSocket, autenticarse con AgentId y AgentToken, mantener heartbeat, recibir jobs, ejecutar operaciones permitidas contra SQL Server local mediante Microsoft.Data.SqlClient, devolver resultados en JSON, manejar timeouts, logs con Serilog y reintentos con Polly.
-
-No debe ejecutar SQL libre recibido desde el servidor. Debe usar una lista blanca de operaciones configurables, por ejemplo clientes.listar, articulos.listar, saldos.consultar, cada una asociada a una stored procedure o query parametrizada.
-
-Generar la estructura inicial del proyecto, clases de configuración, servicio principal, cliente SignalR, ejecutor SQL, modelo de Job, modelo de respuesta, manejo de errores y ejemplo de instalación como Windows Service.
+**[prompts/historico/01-prompt-inicial.md](../../../prompts/historico/01-prompt-inicial.md)**
