@@ -45,6 +45,7 @@
 **Ops / e2e**
 
 - [x] Lab e2e manual (Cursor, 3 terminales) — evidencia `degraded`/`SQL_NOT_CONFIGURED` 2026-09-05.
+- [x] Lab e2e TANGO → Gateway → PaqAgent (Tinker `runDiagnostics`) — 2026-09-05 humano.
 - [ ] (Opcional) AWS: Forge → `http://10.0.1.224:5100` → agente Windows.
 
 ### Traza (este repo)
@@ -64,7 +65,8 @@
 |--|--|
 | Archivos | `backend/app/Services/Agents/AgentGatewayClient.php`; `backend/config/agent_gateway.php`; `.env.example`; `tests/Unit/Services/Agents/AgentGatewayClientTest.php` |
 | Notas | Q1/Q2/Q5/Q8. Rutas inbound Gateway→Laravel siguen con `X-Internal-Api-Key` (espejo inverso; fuera de TR-006). |
-| Evidencia lab | 2026-09-05 `runDiagnostics` → `degraded`/`SQL_NOT_CONFIGURED` (fix `parameters` `{}`) |
+| Commits | `8f6ff44d` (cliente M1/traceId/`runDiagnostics`); `07538109` (`parameters` → `{}`) |
+| Evidencia lab | 2026-09-05 agente + Tinker humano (abajo) |
 
 ### Prueba manual — lab tramo 4 (solo este repo)
 
@@ -123,18 +125,37 @@ Detalle paralelo: [lab-local.md](../../06-operacion/lab-local.md) tramo 4.
 
 ### Prueba manual — TANGO → Gateway (lab)
 
-Con Gateway + PaqAgent arriba (Terminales 1–2). En TANGO `backend/.env`:
+Con Gateway + PaqAgent arriba (Terminales 1–2). En TANGO `backend/.env` (local; no commit):
 
 ```env
 AGENT_GATEWAY_URL=http://127.0.0.1:5100
 AGENT_GATEWAY_INTERNAL_KEY=lab-internal-api-key
 ```
 
-Tinker:
-
-```php
-app(\App\Services\Agents\AgentGatewayClient::class)
-  ->runDiagnostics('lab-agent-01', 'lab', 30, '01TANGODIAG');
+```powershell
+cd C:\Programacion\PaqSuite-IA-TANGO\backend
+php artisan config:clear
+php artisan tinker
 ```
 
-Esperado: mismo contrato de respuesta que el Invoke-RestMethod (p. ej. `degraded` / `SQL_NOT_CONFIGURED` sin SQL en el agente).
+En Tinker, **una sola línea** (si partís el `->` en otra línea, PsySH da parse error):
+
+```php
+app(\App\Services\Agents\AgentGatewayClient::class)->runDiagnostics('lab-agent-01', 'lab', 30, '01TANGODIAG');
+```
+
+Esperado (lab sin SQL en el agente): `status=degraded`, `errorCode=SQL_NOT_CONFIGURED`, `data.sqlConnectionOk=false`, `readiness=gateway_authenticated`.
+
+**Evidencia 2026-09-05 (humano, Tinker):**
+
+| Campo | Valor |
+|-------|--------|
+| `traceId` | `01TANGODIAG` |
+| `jobId` | `61e6e3188cc94b28a11aadc2b66745f3` |
+| `status` | `degraded` |
+| `errorCode` | `SQL_NOT_CONFIGURED` |
+| `data.sqlConnectionOk` | `false` |
+| `data.readiness` | `gateway_authenticated` |
+| `data.agentId` | `lab-agent-01` |
+
+Nota: hace falta `parameters` como objeto JSON `{}` (no array `[]`); corregido en TANGO `07538109`.

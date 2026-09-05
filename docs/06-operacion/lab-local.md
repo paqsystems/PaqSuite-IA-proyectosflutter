@@ -127,11 +127,20 @@ Invoke-RestMethod http://127.0.0.1:5100/internal/jobs/send -Method Post -Headers
 | Server incorrecto | `degraded` | `false` |
 | Agente detenido | `offline` | (sin data de agente) |
 
-Sin Tailscale. Laravel/TANGO = tramo 5 (otra TR slice).
+Sin Tailscale.
+
+**Tramo 5 (TR-006) — TANGO → Gateway lab:** con Terminales 1–2 arriba y en TANGO `.env` `AGENT_GATEWAY_URL=http://127.0.0.1:5100` + `AGENT_GATEWAY_INTERNAL_KEY=lab-internal-api-key`:
+
+```php
+// php artisan tinker — una sola línea
+app(\App\Services\Agents\AgentGatewayClient::class)->runDiagnostics('lab-agent-01', 'lab', 30, '01TANGODIAG');
+```
+
+Evidencia 2026-09-05: `degraded` / `SQL_NOT_CONFIGURED` / jobId `61e6e318…` (detalle en TR-006).
 
 | # | Qué levantás | Qué comprobás | Repo / pieza |
 |---|--------------|---------------|--------------|
-| 5 | Laravel (TANGO) → Gateway de lab o VPC | Ruteo por `agent_id`; sin exigir `host` | `PaqSuite-IA-TANGO` |
+| 5 | Laravel (TANGO) → Gateway de lab o VPC | `runDiagnostics` / ruteo por `agent_id`; sin exigir `host` | `PaqSuite-IA-TANGO` (TR-006) |
 | 6 | Gateway AWS + agente con salida 443 | Internet real, sin Tailscale | TR-003 / HU-002 |
 | 7 | Instalador GUI | UI, prueba SQL, prueba gateway | HU-003 / TR-004 (**después** del caño) |
 
