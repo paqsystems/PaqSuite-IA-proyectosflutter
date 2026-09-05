@@ -3,7 +3,7 @@
 | Campo | Valor |
 |-------|--------|
 | TR | TR-006 |
-| Estado | Pendiente de Revisión |
+| Estado | Finalizado |
 | HU | [HU-005](../../03-historias-usuario/001-Conectividad/HU-005-diagnostics-run.md) |
 | Repos | **este** (`PaqAgent`) + **TANGO** (`AgentGatewayClient`) |
 | Orden D10 | 4 |
@@ -56,7 +56,7 @@
 | Comandos | `dotnet test tests/PaqAgent.Tests` → **8 passed** (2026-09-05) |
 | Commit | `eac2eeb` — slice PaqAgent |
 | Notas | Lab sin SQL 2026-09-05: `degraded` / `SQL_NOT_CONFIGURED` OK. |
-| Pendientes | Humano: Finalizado (F1/F hechos). AWS/`success`+SQL opcionales. |
+| Pendientes | — (Finalizado 2026-09-05). AWS/`success`+SQL opcionales ops. |
 | Nota | TANGO: parameters vacío debe ir como {} (no []) |
 
 ### Traza (TANGO)

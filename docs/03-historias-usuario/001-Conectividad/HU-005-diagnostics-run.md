@@ -3,7 +3,7 @@
 | Campo | Valor |
 |-------|--------|
 | Identificador | HU-005 |
-| Estado | Pendiente de Revisión |
+| Estado | Finalizado |
 | Épica | MVP conectividad (001-Conectividad) |
 | Prioridad | MUST |
 | Roles | Operador PaqSystems / soporte |
