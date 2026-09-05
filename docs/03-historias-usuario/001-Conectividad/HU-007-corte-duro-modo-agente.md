@@ -13,6 +13,8 @@
 | TR | [TR-008](../../04-tareas/001-Conectividad/TR-008-corte-duro-modo-agente.md) |
 | SPEC | [SPEC-AGW-001](../../02-producto/SPEC-AGW-001-producto.md) §7; D5 |
 | C1 | [c1-20260905-TR-008.md](../../08-control/c1-20260905-TR-008.md) — Apto; Q1–Q7 |
+| F1 | [f1-20260905-TR-008.md](../../08-control/f1-20260905-TR-008.md) — Aprobado con observaciones |
+| F | [f-20260905-TR-008.md](../../08-control/f-20260905-TR-008.md) |
 
 ### Narrativa
 
@@ -41,4 +43,4 @@ Feature: Corte duro modo agente
     Then Laravel puede usar SQL directo (transición MVP)
 ```
 
-Siguiente: **paso D1** de TR-008.
+Siguiente: humano puede marcar **Finalizado** (salvedad HTTP e2e Tailscale). Luego D10 siguiente HU.
