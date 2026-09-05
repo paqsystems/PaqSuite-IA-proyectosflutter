@@ -1,0 +1,29 @@
+# PaqGateway — systemd (plantilla TR-003 / N6)
+# Instalar: sudo cp docs/06-operacion/deploy/paqgateway.service /etc/systemd/system/
+#           sudo systemctl daemon-reload && sudo systemctl enable --now paqgateway
+
+[Unit]
+Description=PaqGateway (SignalR agent hub)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=paqgateway
+Group=paqgateway
+WorkingDirectory=/opt/paqgateway
+ExecStart=/usr/bin/dotnet /opt/paqgateway/PaqGateway.dll
+Restart=always
+RestartSec=5
+KillSignal=SIGINT
+TimeoutStopSec=30
+EnvironmentFile=-/etc/paqgateway/env
+# Fallback si no hay EnvironmentFile (URLs/keys van en el env; no secretos aquí)
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+SyslogIdentifier=paqgateway
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,30 +1,31 @@
-# Deploy Gateway AWS — qué definir y configurar
+# Deploy Gateway AWS — runbook (TR-003)
 
 | Campo | Valor |
 |-------|--------|
-| Origen | SPEC-AGW-001 §6, HU-002, TR-003, D2/D8 |
-| Estado | Checklist de **definición / configuración** (pre-piloto). El paso a paso de `dotnet publish` + systemd se completa al ejecutar TR-003 |
-| Hub público | `https://gateway.paqsuite.com/agent-hub` |
-| Lab previo | [lab-local.md](lab-local.md) (verdear caño en localhost antes de exigir AWS) |
+| Origen | SPEC-AGW-001 §6, HU-002 CA 9–13, TR-003 (N1–N6), D2/D8 |
+| Estado | Runbook **ejecutable** (paso D TR-003). Plantillas en [deploy/](deploy/) |
+| Hub público | `https://gateway.paqsystems.com/agent-hub` |
+| Lab previo | [lab-local.md](lab-local.md) (verdear caño local antes de exigir AWS) |
+| C1 | [c1-20260905-TR-003.md](../08-control/c1-20260905-TR-003.md) |
+| Instalación exhaustiva | [deploy/instalacion-exhaustiva-paq-gateway-ia.md](deploy/instalacion-exhaustiva-paq-gateway-ia.md) |
 
-**Prohibido:** Tailscale como camino de producción; abrir SQL 1433 a Internet; dejar `/internal/*` público sin API key; secretos `change-me-in-production` en el servidor.
+**Prohibido:** Tailscale como camino de producción; abrir SQL 1433 a Internet; publicar `/internal/*` en Nginx público; `change-me-in-production` / `UseDevAuthStub=true` en el servidor.
 
-Ya tenés una **instancia EC2** dedicada. Completá las tablas de abajo con los valores reales de esa cuenta (no hace falta esperar a codear TR-002).
+Defaults cerrados (C1 + lección ops): **EC2** + **Nginx en la EC2** + Kestrel `0.0.0.0:5100` (SG limita origen) + publish en `/opt/paqgateway`. Hostname DNS real: **gateway.paqsystems.com** (SPEC histórico `paqsuite.com` no existe en Route 53 de la cuenta).
 
 ---
 
-## 1. Decisiones de arquitectura (cerrar o anotar default)
+## 1. Decisiones de arquitectura (cerradas MVP)
 
-El SPEC permite **Nginx en la EC2** o **ALB** delante. Para el MVP alcanza **una** de las dos.
+| Decisión | Elección MVP |
+|----------|----------------|
+| Terminación TLS | Nginx en la misma EC2 (+ cert Let's Encrypt o el de PaqSystems) |
+| DNS | `gateway.paqsystems.com` → EIP / IP pública de la EC2 |
+| SO | Amazon Linux 2023 o Ubuntu LTS (el de la VPC Laravel) |
+| Laravel → Gateway | `http://<IP-privada-EC2>:5100` (red VPC; header API key) |
+| Kestrel bind | `0.0.0.0:5100` + SG (solo SG Laravel); Nginx proxya `127.0.0.1:5100` |
 
-| Decisión | Opciones | Default sugerido MVP | Tu elección |
-|----------|----------|----------------------|-------------|
-| Terminación TLS | Nginx en la misma EC2 / ALB ACM | Nginx + cert en la EC2 (menos piezas) | |
-| DNS | Route 53 u otro DNS de `paqsuite.com` | Registro A o CNAME → IP/ALB pública | |
-| SO de la EC2 | Amazon Linux 2023 / Ubuntu LTS | El que ya usan en Laravel Forge/VPC | |
-| Cómo llega Laravel al Gateway | IP privada EC2 / DNS interno VPC | `http://<ip-privada>:5xxx` o DNS interno | |
-
-Lo que **no** se decide aquí: Redis backplane, N instancias de Gateway, multi-AZ (fuera del MVP).
+Fuera del MVP: Redis backplane, N instancias, multi-AZ, ALB (salvo que la cuenta ya lo use; documentar en Traza).
 
 ---
 
@@ -32,147 +33,209 @@ Lo que **no** se decide aquí: Redis backplane, N instancias de Gateway, multi-A
 
 | Ítem | Requisito SPEC | Completar |
 |------|----------------|-----------|
-| VPC | **Misma VPC** que Laravel (Forge / host PaqSuite) | VPC id: |
-| Subnet | Preferible privada para Kestrel; pública solo si Nginx/ALB necesita IP elástica | Subnet: |
-| IP privada de la EC2 Gateway | Laravel habla por red **interna**, no por Tailscale | |
-| IP pública / Elastic IP | Solo para agentes (WSS 443). Si usás ALB, la EIP es del ALB | |
-| Conectividad Laravel → Gateway | Desde la instancia Laravel, TCP al puerto interno del Gateway | Probar con `curl` interno |
+| VPC | **Misma VPC** que Laravel | VPC id: |
+| Subnet | Pública si necesita EIP; Kestrel solo localhost | Subnet: |
+| IP privada EC2 | Laravel habla por red **interna** | |
+| IP pública / EIP | Solo para agentes (WSS 443) | |
+| Conectividad Laravel → Gateway | TCP 5100 desde SG Laravel | `curl` interno |
 
-Si la EC2 nueva **no** está en la misma VPC que Laravel, hay que corregir eso antes del piloto (peering o recrear en la VPC correcta). No improvisar Tailscale.
+Sin misma VPC: corregir antes del piloto. No Tailscale.
 
 ---
 
-## 3. Security Group de la instancia Gateway
+## 3. Security Group
 
 | Dirección | Puerto | Origen | Destino | Motivo |
 |-----------|--------|--------|---------|--------|
-| Inbound | **443** | `0.0.0.0/0` (o Cloudflare si aplica) | Nginx/ALB | Agentes: HTTPS/WSS saliente desde clientes |
-| Inbound | **22** (o SSM) | Solo IPs de soporte PaqSystems | SSH/SSM | Admin humano — **no** 22 abierto al mundo si se puede evitar |
-| Inbound | Puerto Kestrel (ej. 5100) | **Solo** CIDR de la VPC / SG de Laravel | Kestrel | API `/internal/*` — **no** a Internet |
-| Inbound | **1433** | — | — | **Prohibido** abrir a Internet |
-| Outbound | 443/80 | Según | Laravel privado / HTTPS | Auth de agentes contra Laravel; updates OS |
+| Inbound | **443** | `0.0.0.0/0` (o Cloudflare) | Nginx | Hub WSS agentes |
+| Inbound | **80** | `0.0.0.0/0` | Nginx | ACME Let's Encrypt (+ redirect) |
+| Inbound | **22** / SSM | Solo IPs soporte | SSH/SSM | Admin |
+| Inbound | **5100** | Solo CIDR VPC / SG Laravel | Kestrel | `/internal/*` |
+| Inbound | **1433** | — | — | **Prohibido** a Internet |
+| Outbound | 443/80 | Según | Laravel privado | Auth agentes |
 
-SG id (Gateway): _______________  
-SG Laravel (para referenciar como origen interno): _______________
+SG Gateway: _______________ · SG Laravel: _______________
 
-Regla de oro: lo que ve Internet es **solo** el hub SignalR en 443. Jobs y status van por red privada + API key.
-
----
-
-## 4. DNS y certificado TLS
-
-| Ítem | Valor esperado | Completar |
-|------|----------------|-----------|
-| Nombre público | `gateway.paqsuite.com` | ¿Dominio ya en Route 53 / registrador? |
-| Registro | A → EIP de la EC2, o CNAME/A → ALB | |
-| Certificado | ACM (ALB) o Let's Encrypt / cert en Nginx | Quién emite: |
-| Path hub | `/agent-hub` | Fijo (SPEC) |
-| URL agentes | `https://gateway.paqsuite.com/agent-hub` | |
-
-Sin DNS + TLS válidos no se cierra HU-002 (handshake WSS real desde fuera de la VPC).
-
-WebSocket: el reverse proxy debe permitir **Upgrade** (Nginx: `proxy_http_version 1.1`, headers `Upgrade`/`Connection`; ALB: target group con stickiness si aplica). Detalle de config en TR-003.
+Internet ve **solo** 443 → `/agent-hub`. Jobs/status = red privada + API key.
 
 ---
 
-## 5. Softare base en la EC2 (antes o al instalar el publish)
+## 4. DNS y TLS
+
+| Ítem | Valor |
+|------|--------|
+| Nombre | `gateway.paqsystems.com` |
+| Registro | A → EIP de la EC2 (zona Route 53 `paqsystems.com`) |
+| Cert | Let's Encrypt / cert interno en Nginx (ver plantilla) |
+| Hub | `/agent-hub` |
+| URL agentes | `https://gateway.paqsystems.com/agent-hub` |
+
+Plantilla: [deploy/nginx-gateway.conf](deploy/nginx-gateway.conf) (`Upgrade` / `Connection` / timeouts largos).
+
+---
+
+## 5. Software base en la EC2
 
 | Ítem | Notas | Hecho |
 |------|-------|-------|
-| .NET 8 **ASP.NET Core Runtime** (Linux x64) | No hace falta SDK en producción | [ ] |
-| Nginx (si no hay ALB) o solo Kestrel detrás de ALB | Termina TLS / proxy a Kestrel | [ ] |
-| systemd unit `paqgateway.service` | `Restart=always`, WorkingDirectory del publish | [ ] |
-| Usuario de servicio sin shell | No correr Kestrel como root | [ ] |
-| Disco / logs | Carpeta de logs Serilog; rotación básica | [ ] |
-| Zona horaria / NTP | UTC recomendado para `last_seen_at` | [ ] |
+| .NET 8 **ASP.NET Core Runtime** (Linux x64) | No SDK en prod | [ ] |
+| Nginx | TLS + proxy a Kestrel | [ ] |
+| Usuario `paqgateway` sin shell | `useradd --system --home /opt/paqgateway --shell /usr/sbin/nologin paqgateway` | [ ] |
+| systemd `paqgateway.service` | [deploy/paqgateway.service](deploy/paqgateway.service) | [ ] |
+| `/etc/paqgateway/env` | Desde [deploy/env.example](deploy/env.example); chmod 640 | [ ] |
+| UTC / NTP | Recomendado | [ ] |
 
 ---
 
-## 6. Variables de entorno / secretos (producción)
+## 6. Variables de entorno (producción)
 
-Nombres canónicos (TR-003). Generar valores fuertes; **no** commitear en git.
+**No** commitear valores reales. Archivo: `/etc/paqgateway/env`.
 
-| Variable | Quién la usa | Dónde vive | Completar / generar |
-|----------|--------------|------------|---------------------|
-| `Gateway__InternalApiKey` | Laravel → Gateway (`/internal/*`) | Env systemd / Parameter Store | |
-| `LaravelApi__BaseUrl` | Gateway → Laravel (auth token agente) | URL **privada** de Laravel en la VPC | ej. `http://10.x.x.x` o DNS interno |
-| `LaravelApi__InternalApiKey` | Gateway → Laravel | Mismo secreto que Laravel espera en API interna | |
-| (opcional) `ASPNETCORE_URLS` | Kestrel escucha solo localhost o red privada | ej. `http://127.0.0.1:5100` | |
-| (opcional) `Gateway__OnlineTtlSeconds` | Default scaffold 90 | Solo si no usás constante de PaqContracts | |
+| Variable | Uso |
+|----------|-----|
+| `ASPNETCORE_ENVIRONMENT=Production` | Obligatoria |
+| `ASPNETCORE_URLS=http://0.0.0.0:5100` | Escucha VPC; SG limita origen (Forge). `127.0.0.1` solo = Nginx local, Forge no conecta |
+| `Gateway__InternalApiKey` | Laravel → Gateway (`X-Paq-Internal-Api-Key`) |
+| `LaravelApi__BaseUrl` | URL **privada** de Laravel |
+| `LaravelApi__InternalApiKey` | Gateway → Laravel authenticate |
+| `Gateway__UseDevAuthStub=false` | N5 — **prohibido** `true` en prod |
 
-En Laravel (TANGO, al cablear): URL del Gateway = **IP/DNS privado** de esta EC2 (o ALB interno), **no** `https://gateway.paqsuite.com` para jobs internos.
+Laravel (TANGO): base URL del Gateway = **IP/DNS privado**:5100, **no** el hostname público para jobs.
 
-Rotación: documentar quién guarda las keys (1Password / Secrets Manager). Nunca en `appsettings.json` versionado.
+**Copia local de keys (ops, fuera de git) — instalación Paq-Gateway-IA 2026-09-05:**  
+`C:\Programacion\KEYS\paq-gateway-ia\keys-solicitados-instalacion.txt`  
+No versionar ese archivo. En el servidor: solo `/etc/paqgateway/env` (chmod 640).
 
 ---
 
-## 7. Qué debe existir en Laravel (contrato, no en esta EC2)
-
-Sin esto el Gateway no puede autenticar agentes en producción:
+## 7. Contrato Laravel (no en esta EC2)
 
 | Ítem | Repo | Notas |
 |------|------|--------|
-| Alta modo agente / token | TANGO — TR-001 | `agent_id`, token hash; sin `host` obligatorio |
-| Endpoint interno de auth (o catálogo) | TANGO | Gateway llama `LaravelApi__BaseUrl` |
-| Cliente HTTP al Gateway | TANGO — TR-006+ | Base URL **interna** + `Gateway__InternalApiKey` |
+| Alta modo agente / token | TANGO — TR-001 | Hecho en lab |
+| `POST /api/internal/gateway/authenticate` | TANGO | Necesario para auth real de agentes en prod |
+| Cliente HTTP al Gateway | TANGO — TR-006+ | URL interna + API key |
 
-Orden D10: podés **preparar** la EC2 ya; el cableado Laravel puede ir en paralelo (TR-001) y el handshake agente↔gateway público cuando TR-002/005 estén verdes en lab.
+Sin authenticate en TANGO, el hub TLS puede estar up pero el handshake de agente con token real fallará hasta cablear auth.
 
 ---
 
-## 8. Pruebas de aceptación infra (checklist)
-
-Antes de dar por cerrado el deploy (HU-002):
+## 8. Pruebas de aceptación infra
 
 | # | Prueba | Cómo | OK |
 |---|--------|------|-----|
-| 1 | Proceso up | `systemctl status paqgateway` | [ ] |
-| 2 | TLS público | Navegador/`curl` a `https://gateway.paqsuite.com` (cert válido) | [ ] |
-| 3 | WSS hub | Agente o cliente SignalR a `/agent-hub` **desde fuera** de Tailscale | [ ] |
-| 4 | Internal no público | `POST https://gateway…/internal/jobs/send` sin key → 401/403 | [ ] |
-| 5 | Internal desde Laravel | Desde host Laravel: `GET http://<privado>/internal/agents/{id}/status` con API key | [ ] |
-| 6 | 1433 cerrado | SG: sin regla 1433 a Internet | [ ] |
-| 7 | Sin secretos en disco claros | Revisar unit + env; no `change-me` | [ ] |
-
-Detalle de lab previo en máquina de desarrollo: [lab-local.md](lab-local.md). URLs: [urls-deploy.md](urls-deploy.md).
+| 1 | Proceso up | `systemctl status paqgateway` | [x] |
+| 2 | TLS público | `curl -I https://gateway.paqsystems.com` (cert válido) | [x] |
+| 3 | WSS hub | Cliente SignalR / LabAgentMock apuntando a URL pública **fuera** de Tailscale | [ ] |
+| 4 | Internal no público | `curl -X POST https://gateway.paqsystems.com/internal/jobs/send` → 404 (Nginx) | [x] |
+| 5 | Internal desde Laravel | Desde Forge: `curl -H "X-Paq-Internal-Api-Key: …" http://10.0.1.224:5100/internal/agents/{id}/status` | [x] |
+| 6 | 1433 cerrado | Revisar SG | [ ] |
+| 7 | Sin stub / change-me | `grep -i UseDevAuthStub /etc/paqgateway/env` → false/ausente | [ ] |
 
 ---
 
-## 9. Ficha de la instancia (completar vos)
+## 9. Ficha de la instancia (referencia *2026-09-05*)
 
-Copiá y rellená; sirve para TR-003 y soporte.
+Detalle paso a paso: [deploy/instalacion-exhaustiva-paq-gateway-ia.md](deploy/instalacion-exhaustiva-paq-gateway-ia.md).
 
 ```text
-Cuenta AWS / región:
-VPC id:
-Subnet:
-EC2 instance id:
-Nombre / tag:
-AMI / SO:
-Tipo de instancia:
-IP privada:
-IP pública / EIP:
-Security Group id(s):
-DNS gateway.paqsuite.com → :
-TLS: Nginx | ALB (+ ARN certificado):
-Puerto Kestrel interno:
-URL interna Laravel (LaravelApi__BaseUrl):
-URL interna que usará Laravel hacia este Gateway:
-Fecha de alta:
-Responsable:
+Cuenta AWS / región: 655232113361 / us-east-2 (Ohio)
+VPC id: vpc-0588b88f9c6772017 (paq-2021) — misma que Forge
+Subnet: subnet-0b2e94121d57cadd1
+EC2 instance id: i-026ab0a7c3a957fd2
+Nombre / tag: Paq-Gateway-IA
+AMI / SO: Amazon Linux 2023
+Tipo de instancia: t3.micro
+IP privada: 10.0.1.224
+IP pública / EIP: 3.142.236.237 (auto-asignada; EIP fija pendiente opcional)
+Security Group id(s): sg-038e5fa123db1b5c8 (paq-gateway-ia)
+  - 443 ← 0.0.0.0/0
+  - 80  ← 0.0.0.0/0 (ACME)
+  - 5100 ← sg-012112202a70d9d29 (Forge)
+  - 22 ← IP oficina /32
+Forge (Laravel) referencia: i-0ab40b2f17c7894c9 / 10.0.1.147 / sg-012112202a70d9d29
+DNS: gateway.paqsystems.com → 3.142.236.237 (zona paqsystems.com)
+TLS: Let's Encrypt /etc/letsencrypt/live/gateway.paqsystems.com/
+Puerto Kestrel: 5100  ASPNETCORE_URLS=http://0.0.0.0:5100
+URL agentes: https://gateway.paqsystems.com/agent-hub
+URL interna Laravel → Gateway: http://10.0.1.224:5100
+LaravelApi__BaseUrl: http://10.0.1.147
+Fecha de alta: 2026-09-05
+PEM: C:\Users\PabloQ\.ssh\pq-ia-gateway.pem
+Copia local de keys (ops, fuera de git): C:\Programacion\KEYS\paq-gateway-ia\keys-solicitados-instalacion.txt
 ```
 
 ---
 
-## 10. Qué falta para “instalar” el binario (TR-003)
+## 10. Instalación del binario (pasos TR-003)
 
-Cuando el código de `PaqGateway` esté listo:
+### 10.1 Publish (máquina de build / CI)
 
-1. `dotnet publish` Release en CI o en la máquina de build  
-2. Copiar artefactos a la EC2 (scp/SSM)  
-3. Unit systemd + env con las variables de §6  
-4. Nginx/ALB según §1 y §4  
-5. Pruebas §8  
-6. Actualizar este archivo con comandos reales (paths, unit file) y cerrar Traza en TR-003  
+Desde la raíz del repo:
 
-Hasta entonces, este documento es la **lista de lo que tenés que tener definido en AWS** para no inventar infra el día del deploy.
+```bash
+dotnet publish src/PaqGateway -c Release -o artifacts/paqgateway
+```
+
+Smoke local (opcional): el directorio debe contener `PaqGateway.dll`. La carpeta `artifacts/` está en `.gitignore`.
+
+### 10.2 Usuario y directorios (EC2)
+
+```bash
+sudo useradd --system --home /opt/paqgateway --shell /usr/sbin/nologin paqgateway || true
+sudo mkdir -p /opt/paqgateway /etc/paqgateway
+sudo chown -R paqgateway:paqgateway /opt/paqgateway
+```
+
+### 10.3 Copiar artefactos
+
+Desde la máquina de build (ajustar user/host):
+
+```bash
+rsync -avz --delete artifacts/paqgateway/ user@<ec2>:/tmp/paqgateway-new/
+# en la EC2:
+sudo rsync -a --delete /tmp/paqgateway-new/ /opt/paqgateway/
+sudo chown -R paqgateway:paqgateway /opt/paqgateway
+```
+
+Alternativa: SSM Session Manager + upload, o pipeline CI.
+
+### 10.4 Env y systemd
+
+```bash
+sudo cp /path/to/repo/docs/06-operacion/deploy/env.example /etc/paqgateway/env
+sudo chmod 640 /etc/paqgateway/env
+sudo chown root:paqgateway /etc/paqgateway/env
+# editar secretos reales
+sudo nano /etc/paqgateway/env
+
+sudo cp /path/to/repo/docs/06-operacion/deploy/paqgateway.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now paqgateway
+sudo systemctl status paqgateway
+```
+
+### 10.5 Nginx + cert
+
+```bash
+sudo cp /path/to/repo/docs/06-operacion/deploy/nginx-gateway.conf /etc/nginx/sites-available/gateway.paqsuite.com
+# o /etc/nginx/conf.d/gateway.conf en Amazon Linux
+# Descomentar ssl_certificate* tras emitir cert (certbot u otro)
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+DNS: apuntar `gateway.paqsystems.com` a la EIP/IP. Emitir certificado (certbot).  
+Procedimiento completo documentado: [deploy/instalacion-exhaustiva-paq-gateway-ia.md](deploy/instalacion-exhaustiva-paq-gateway-ia.md).
+
+### 10.6 Verificar
+
+Ejecutar checklist §8. Completar ficha §9. Cerrar Traza en [TR-003](../04-tareas/001-Conectividad/TR-003-deploy-gateway-aws.md).
+
+---
+
+## 11. Referencias
+
+- Plantillas: [deploy/](deploy/)
+- URLs: [urls-deploy.md](urls-deploy.md)
+- Lab: [lab-local.md](lab-local.md)
+- App Gateway: TR-002 (`src/PaqGateway`)

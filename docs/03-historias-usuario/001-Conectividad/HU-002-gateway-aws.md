@@ -118,4 +118,4 @@ No inventar features. Cerrar en TR-002/TR-003 + C1.
 
 **Lista para TR: Sí con observaciones** (observaciones = tabla de dudas; no bloquean C si C1 las fija o adopta defaults A1).
 
-Siguiente: **paso D1** de TR-002 (HU COMPLEJA) → luego D. TR-003: C1 propio cuando toque deploy.
+Siguiente: **paso D1** de TR-003 (si falta) o aplicar runbook en AWS → F1/F. TR-002 app **Finalizado**.
