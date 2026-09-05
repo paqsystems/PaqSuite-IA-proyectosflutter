@@ -1,4 +1,3 @@
-using Microsoft.Data.SqlClient;
 using PaqAgent.Options;
 
 namespace PaqAgent.Diagnostics;
@@ -9,18 +8,8 @@ public sealed class SqlConnectionPinger : ISqlConnectionPinger
     {
         try
         {
-            var builder = new SqlConnectionStringBuilder
-            {
-                DataSource = sql.Server,
-                InitialCatalog = sql.Database,
-                UserID = sql.User,
-                Password = sql.Password,
-                Encrypt = true,
-                TrustServerCertificate = true,
-                ConnectTimeout = 5
-            };
-
-            await using var connection = new SqlConnection(builder.ConnectionString);
+            var connectionString = SqlConnectionStringFactory.Build(sql, connectTimeoutSeconds: 5);
+            await using var connection = new Microsoft.Data.SqlClient.SqlConnection(connectionString);
             await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
             return new SqlPingResult { Ok = true };
         }

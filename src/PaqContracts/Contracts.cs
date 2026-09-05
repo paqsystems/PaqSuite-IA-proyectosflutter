@@ -38,6 +38,7 @@ public static class HubMethodNames
 public static class JobOperations
 {
     public const string DiagnosticsRun = "diagnostics.run";
+    public const string AuthLogin = "auth.login";
 }
 
 public sealed class JobRequest

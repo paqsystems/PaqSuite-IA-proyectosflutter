@@ -25,4 +25,9 @@ public sealed class SqlOptions
     public string Database { get; set; } = "";
     public string User { get; set; } = "";
     public string Password { get; set; } = "";
+
+    /// <summary>Lab SSMS “Opcional” ⇒ false. Producción: true.</summary>
+    public bool Encrypt { get; set; }
+
+    public bool TrustServerCertificate { get; set; } = true;
 }

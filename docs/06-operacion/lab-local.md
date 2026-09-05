@@ -138,6 +138,56 @@ app(\App\Services\Agents\AgentGatewayClient::class)->runDiagnostics('lab-agent-0
 
 Evidencia 2026-09-05: `degraded` / `SQL_NOT_CONFIGURED` / jobId `61e6e318…` (detalle en TR-006).
 
+**Tramo 4b (TR-007 slice este) — `auth.login` sin TANGO:**
+
+### Dos bases / dos “usuarios” (no confundir)
+
+| Pieza | Significado |
+|-------|-------------|
+| `src/PaqAgent/appsettings.local.json` → `sql.*` | Conexión al **diccionario SQL** del cliente (`server`, `database`, login SQL tipo `Axoft`). **No** es `empresas_conexion`. |
+| Job `parameters.codigo` | Usuario Tango (`USERS.codigo`, ej. `PQ`). Va en el body del REST, no en `sql.user`. |
+| `empresas_conexion` | Solo Laravel (alta agente). Fuera de este tramo REST. |
+| `"encrypt": false` | Alinear a SSMS con cifrado **Opcional**; si no, suele aparecer `SQL_UNREACHABLE` (timeout SSL). |
+| `AGENT_OFFLINE` | PaqAgent no está conectado (o quedó un `.exe` zombie). Reiniciar agente; si el build falla por archivo bloqueado, matar `PaqAgent.exe`. |
+
+Con Terminales 1–2 arriba (`Conectado al Gateway`). Scripts SP: `src/PaqAgent/Sql/`.
+
+```powershell
+$h = @{ "X-Paq-Internal-Api-Key" = "lab-internal-api-key" }
+
+# Whitelist
+$bodyBad = @{
+  traceId = "01AUTHBAD"; agentId = "lab-agent-01"; clientId = "lab"
+  operation = "clientes.buscar"; timeoutSeconds = 30; parameters = @{}
+} | ConvertTo-Json
+Invoke-RestMethod http://127.0.0.1:5100/internal/jobs/send -Method Post -Headers $h -ContentType "application/json" -Body $bodyBad
+
+# auth.login — codigo = USERS.codigo (ej. PQ), no el login SQL
+$bodyAuth = @{
+  traceId = "01AUTHOK"; agentId = "lab-agent-01"; clientId = "lab"
+  operation = "auth.login"; timeoutSeconds = 30
+  parameters = @{ codigo = "PQ" }
+} | ConvertTo-Json
+Invoke-RestMethod http://127.0.0.1:5100/internal/jobs/send -Method Post -Headers $h -ContentType "application/json" -Body $bodyAuth
+
+# diagnostics
+$bodyDiag = @{
+  traceId = "01DIAGOK"; agentId = "lab-agent-01"; clientId = "lab"
+  operation = "diagnostics.run"; timeoutSeconds = 30; parameters = @{}
+} | ConvertTo-Json
+Invoke-RestMethod http://127.0.0.1:5100/internal/jobs/send -Method Post -Headers $h -ContentType "application/json" -Body $bodyDiag
+```
+
+| Condición | Esperado |
+|-----------|----------|
+| `clientes.buscar` | `failed` / `OPERATION_NOT_ALLOWED` |
+| `auth.login` sin SQL en local | `degraded` / `SQL_NOT_CONFIGURED` |
+| `auth.login` sin `codigo` | `failed` / `INVALID_PARAMETERS` |
+| SQL + SP + codigo válido (ej. `PQ`) | `success` + `data.status=OK` |
+| diagnostics con SQL OK | `success` + `sqlConnectionOk=true` |
+
+**Evidencia 2026-09-05 (SQL lab + `encrypt:false` + codigo `PQ`):** whitelist OK; `auth.login` → `success`/`OK`/`es_admin=True`; diagnostics → `sqlConnectionOk=True` (detalle en TR-007).
+
 | # | Qué levantás | Qué comprobás | Repo / pieza |
 |---|--------------|---------------|--------------|
 | 5 | Laravel (TANGO) → Gateway de lab o VPC | `runDiagnostics` / ruteo por `agent_id`; sin exigir `host` | `PaqSuite-IA-TANGO` (TR-006) |
@@ -155,25 +205,30 @@ Archivo **junto al binario** del agente (no commitear secretos). Valores de ejem
 ```json
 {
   "agentId": "lab-agent-01",
-  "clientId": "LabCliente001",
+  "clientId": "lab",
   "agentToken": "<pegar-token-real-sin-default>",
   "gatewayUrl": "http://127.0.0.1:5100/agent-hub",
   "sql": {
-    "server": "localhost",
-    "database": "Diccionario_lab",
-    "user": "<usuario>",
-    "password": "<password>"
+    "server": "192.168.x.x",
+    "database": "diccionario_del_piloto",
+    "user": "<login-SQL-Server>",
+    "password": "<password-SQL>",
+    "encrypt": false,
+    "trustServerCertificate": true
   }
 }
 ```
 
 Notas:
 
+- Ruta del archivo: **`src/PaqAgent/appsettings.local.json`** (no la raíz del repo).
+- `sql.*` = diccionario Tango en SQL Server. **No** es `empresas_conexion` (Laravel).
+- `sql.user` = login SQL (ej. Axoft). El usuario Tango (`PQ`) va en el job como `parameters.codigo`.
+- `encrypt: false` si SSMS usa cifrado Opcional (evita `SQL_UNREACHABLE` por SSL).
 - `gatewayUrl` en lab = localhost (D8). En prod ops = `https://gateway.paqsystems.com/agent-hub`.
-- **Sin** `dev-agent-token`. Si el token está vacío, el agente no debe quedar online.
-- Plantilla versionada: `src/PaqAgent/appsettings.local.json.example` → copiar a `appsettings.local.json` (gitignored).
-- SQL puede omitirse solo para verdear tramo 2 (online); tramos 3–4 exigen SQL alcanzable.
-- Este archivo lo escribe el instalador en HU-003; en lab se edita a mano (D10).
+- **Sin** `dev-agent-token`.
+- Plantilla: `src/PaqAgent/appsettings.local.json.example`.
+- SQL puede omitirse solo para verdear conexión al hub; auth.login/diagnostics con SQL exigen diccionario + SP.
 
 ---
 
