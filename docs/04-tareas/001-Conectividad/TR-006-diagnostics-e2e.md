@@ -56,7 +56,7 @@
 | Comandos | `dotnet test tests/PaqAgent.Tests` → **8 passed** (2026-09-05) |
 | Commit | `eac2eeb` — slice PaqAgent |
 | Notas | Lab sin SQL 2026-09-05: `degraded` / `SQL_NOT_CONFIGURED` OK. |
-| Pendientes | F1/F |
+| Pendientes | Humano: Finalizado (F1/F hechos). AWS/`success`+SQL opcionales. |
 | Nota | TANGO: parameters vacío debe ir como {} (no []) |
 
 ### Traza (TANGO)
