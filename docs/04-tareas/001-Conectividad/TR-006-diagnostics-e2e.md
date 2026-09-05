@@ -3,7 +3,7 @@
 | Campo | Valor |
 |-------|--------|
 | TR | TR-006 |
-| Estado | Especificado (slice **este repo** en D; TANGO pendiente) |
+| Estado | Pendiente de Revisión |
 | HU | [HU-005](../../03-historias-usuario/001-Conectividad/HU-005-diagnostics-run.md) |
 | Repos | **este** (`PaqAgent`) + **TANGO** (`AgentGatewayClient`) |
 | Orden D10 | 4 |
@@ -34,12 +34,13 @@
 - [x] Lab: [lab-local.md](../../06-operacion/lab-local.md) tramo 4 + § prueba manual abajo.
 - [x] Tests: `DiagnosticsRunnerTests` (degraded sin SQL / unreachable / success).
 
-**TANGO**
+**TANGO** (`PaqSuite-IA-TANGO`, rama `FRAMEWORK`)
 
-- [ ] Header `X-Paq-Internal-Api-Key`; body con `traceId`.
-- [ ] Método `runDiagnostics` (o equiv.) → `sendJob(..., diagnostics.run)`.
-- [ ] Logs `traceId` / duración; sin secretos.
-- [ ] Sin fallback SQL por `host` si `agent_id` presente (al menos en este camino).
+- [x] Header `X-Paq-Internal-Api-Key`; body con `traceId` (UUID si el caller no pasa uno).
+- [x] Método `runDiagnostics` → `sendJob(..., diagnostics.run)`.
+- [x] Logs `traceId` / duración (`duration_ms`); sin secretos.
+- [x] `runDiagnostics` solo vía Gateway (sin fallback SQL por `host`).
+- [x] Tests unitarios `AgentGatewayClientTest` (header M1, traceId, runDiagnostics).
 
 **Ops / e2e**
 
@@ -52,8 +53,17 @@
 |--|--|
 | Archivos | `PaqContracts.JobOperations`; `PaqAgent/Diagnostics/*`; `AgentGatewayConnector`; `lab-local.md`; tests |
 | Comandos | `dotnet test tests/PaqAgent.Tests` → **8 passed** (2026-09-05) |
-| Notas | Slice A del D1. TANGO no tocado. Lab sin SQL 2026-09-05: `degraded` / `SQL_NOT_CONFIGURED` OK. |
-| Pendientes | D en TANGO; F1/F al cerrar ambos (o F1 parcial este repo si se acuerda). |
+| Commit | `eac2eeb` — slice PaqAgent |
+| Notas | Lab sin SQL 2026-09-05: `degraded` / `SQL_NOT_CONFIGURED` OK. |
+| Pendientes | F1/F |
+
+### Traza (TANGO)
+
+| | |
+|--|--|
+| Archivos | `backend/app/Services/Agents/AgentGatewayClient.php`; `backend/config/agent_gateway.php`; `.env.example`; `tests/Unit/Services/Agents/AgentGatewayClientTest.php` |
+| Notas | Q1/Q2/Q5/Q8. Rutas inbound Gateway→Laravel siguen con `X-Internal-Api-Key` (espejo inverso; fuera de TR-006). |
+| Pendientes | F1/F; e2e Laravel→Gateway opcional en lab |
 
 ### Prueba manual — lab tramo 4 (solo este repo)
 
@@ -110,4 +120,20 @@ Invoke-RestMethod http://127.0.0.1:5100/internal/jobs/send -Method Post -Headers
 
 Detalle paralelo: [lab-local.md](../../06-operacion/lab-local.md) tramo 4.
 
-Siguiente: **D en TANGO** cuando indiquen.
+### Prueba manual — TANGO → Gateway (lab)
+
+Con Gateway + PaqAgent arriba (Terminales 1–2). En TANGO `backend/.env`:
+
+```env
+AGENT_GATEWAY_URL=http://127.0.0.1:5100
+AGENT_GATEWAY_INTERNAL_KEY=lab-internal-api-key
+```
+
+Tinker:
+
+```php
+app(\App\Services\Agents\AgentGatewayClient::class)
+  ->runDiagnostics('lab-agent-01', 'lab', 30, '01TANGODIAG');
+```
+
+Esperado: mismo contrato de respuesta que el Invoke-RestMethod (p. ej. `degraded` / `SQL_NOT_CONFIGURED` sin SQL en el agente).
