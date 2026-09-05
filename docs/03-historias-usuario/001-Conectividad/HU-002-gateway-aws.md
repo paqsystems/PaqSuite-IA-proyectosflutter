@@ -13,7 +13,8 @@
 | TR | [TR-002](../../04-tareas/001-Conectividad/TR-002-paqgateway-app.md) (app), [TR-003](../../04-tareas/001-Conectividad/TR-003-deploy-gateway-aws.md) (deploy) |
 | SPEC | [SPEC-AGW-001](../../02-producto/SPEC-AGW-001-producto.md) §6–§7 (v1.2) |
 | A1 | [a1-20260904-SPEC-AGW-001.md](../../08-control/a1-20260904-SPEC-AGW-001.md) — Apto con observaciones |
-| C1 (app) | [c1-20260904-TR-002.md](../../08-control/c1-20260904-TR-002.md) — TR-002 **Apto**; defaults M1–M9 cerrados |
+| C1 (app) | [c1-20260904-TR-002.md](../../08-control/c1-20260904-TR-002.md) — TR-002 Apto / **Finalizado** |
+| C1 (deploy) | [c1-20260905-TR-003.md](../../08-control/c1-20260905-TR-003.md) — TR-003 Apto; N1–N6 |
 
 Origen: SPEC-AGW-001. Una HU = una capacidad observable. Paso B regeneró desde SPEC v1.2; B1 enriqueció sin inventar. Obligatoria **D1** antes de D (COMPLEJA).
 
