@@ -126,7 +126,7 @@ Sin authenticate en TANGO, el hub TLS puede estar up pero el handshake de agente
 |---|--------|------|-----|
 | 1 | Proceso up | `systemctl status paqgateway` | [x] |
 | 2 | TLS público | `curl -I https://gateway.paqsystems.com` (cert válido) | [x] |
-| 3 | WSS hub | Cliente SignalR / LabAgentMock apuntando a URL pública **fuera** de Tailscale | [ ] |
+| 3 | WSS hub | Ver procedimiento en [TR-003 § Prueba manual CA 10](../04-tareas/001-Conectividad/TR-003-deploy-gateway-aws.md#prueba-manual-ca-10--wss-público-labagentmock): `LabAgentMock` → `https://gateway.paqsystems.com/agent-hub` **fuera** de Tailscale | [ ] |
 | 4 | Internal no público | `curl -X POST https://gateway.paqsystems.com/internal/jobs/send` → 404 (Nginx) | [x] |
 | 5 | Internal desde Laravel | Desde Forge: `curl -H "X-Paq-Internal-Api-Key: …" http://10.0.1.224:5100/internal/agents/{id}/status` | [x] |
 | 6 | 1433 cerrado | Revisar SG | [ ] |

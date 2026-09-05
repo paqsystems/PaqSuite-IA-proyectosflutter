@@ -3,15 +3,16 @@
 | Campo | Valor |
 |-------|--------|
 | Identificador | HU-004 |
-| Estado | Pendiente |
+| Estado | Finalizado |
 | Épica | MVP conectividad (001-Conectividad) |
 | Prioridad | MUST |
 | Roles | Sistema |
-| Dependencias | HU-002; config del agente (lab: `appsettings.local.json` manual; producción: HU-003) |
+| Dependencias | HU-002 Finalizado; config del agente (lab: `appsettings.local.json` manual; producción: HU-003) |
 | Clasificación | HU SIMPLE |
 | Repo de implementación | este (`src/PaqAgent`) |
 | TR | [TR-005](../../04-tareas/001-Conectividad/TR-005-paqagent-servicio.md) |
 | SPEC | [SPEC-AGW-001](../../02-producto/SPEC-AGW-001-producto.md) |
+| C1 | [c1-20260905-TR-005.md](../../08-control/c1-20260905-TR-005.md) — Apto; P1–P8 |
 
 ### Narrativa
 
@@ -21,14 +22,18 @@ Como **sistema** quiero que **el agente, al iniciar el servicio, abra WSS salien
 
 Para esta HU basta un `appsettings.local.json` escrito a mano con AgentId, ClientId, AgentToken, GatewayUrl y SQL local. El instalador GUI es HU-003 y viene después. **Sin Tailscale. Sin `dev-agent-token`.**
 
+### Alineación post-C1 (P1)
+
+La prosa histórica “Bearer / RegisterAgent” **cede** al contrato Gateway TR-002: credenciales en **query** de `/agent-hub` y presencia con hub method **`Heartbeat`**. No hay `RegisterAgent` en `PaqContracts`.
+
 ### Criterios de aceptación
 
-1. Al start: conecta a `GatewayUrl`, Bearer token, `RegisterAgent` con agentId, clientId, machineName, sqlServerName, version.
-2. Heartbeat periódico (default **30 s**); actualiza `last_seen_at` (y opcionalmente `last_seen_ip`).
-3. Online en Gateway/Laravel = heartbeat dentro de TTL (**90 s**, D16 / H8), no solo socket. Autoridad del online: **Gateway**; Laravel consulta status API (H4).
+1. Al start: conecta a `GatewayUrl` (hub `/agent-hub`) con `agentId`, `clientId`, `agentToken` en query; envía identidad (machineName, sqlServerName si hay, version) vía heartbeat/logs.
+2. Heartbeat periódico (default **30 s**); el Gateway refleja `lastSeenAt` (y opcionalmente `lastSeenIp`).
+3. Online en Gateway = heartbeat dentro de TTL (**90 s**). Autoridad: **Gateway**; Laravel consulta status API.
 4. Si cae la red: reconecta con backoff (5, 10, 20, 30, 60 s) sin intervención.
 5. Token inválido: no queda “online”; log de error claro, sin imprimir el token.
-6. Laravel `GET` status via Gateway = `online` cuando el servicio corre y el TTL está vigente.
+6. `GET` status vía Gateway = `online` cuando el servicio corre y el TTL está vigente.
 
 ```gherkin
 Feature: Conexión saliente
@@ -41,3 +46,12 @@ Feature: Conexión saliente
     Then el agente no queda registrado
     And Laravel no lo muestra online
 ```
+
+### Cierre
+
+| Campo | Valor |
+|-------|--------|
+| Finalizado | 2026-09-05 (humano) |
+| TR | TR-005 Finalizado |
+
+Siguiente D10: **HU-005 / TR-006**.

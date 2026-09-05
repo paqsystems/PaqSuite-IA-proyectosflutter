@@ -1,0 +1,12 @@
+{
+  "agentId": "lab-agent-01",
+  "clientId": "lab",
+  "agentToken": "lab-token-manual",
+  "gatewayUrl": "http://127.0.0.1:5100/agent-hub",
+  "sql": {
+    "server": "",
+    "database": "",
+    "user": "",
+    "password": ""
+  }
+}

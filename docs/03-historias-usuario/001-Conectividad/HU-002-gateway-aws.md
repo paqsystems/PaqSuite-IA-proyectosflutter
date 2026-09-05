@@ -3,7 +3,7 @@
 | Campo | Valor |
 |-------|--------|
 | Identificador | HU-002 |
-| Estado | Pendiente de Revisión |
+| Estado | Finalizado |
 | Épica | MVP conectividad (001-Conectividad) |
 | Prioridad | MUST |
 | Roles | Operador de infraestructura PaqSystems |
@@ -118,4 +118,13 @@ No inventar features. Cerrar en TR-002/TR-003 + C1.
 
 **Lista para TR: Sí con observaciones** (observaciones = tabla de dudas; no bloquean C si C1 las fija o adopta defaults A1).
 
-Siguiente: **paso D1** de TR-003 (si falta) o aplicar runbook en AWS → F1/F. TR-002 app **Finalizado**.
+### Cierre
+
+| Campo | Valor |
+|-------|--------|
+| Finalizado | 2026-09-05 (humano) |
+| TR-002 | Finalizado (app CA 1–8) |
+| TR-003 | Finalizado (deploy CA 9–13; CA 10 salvedad caso B) |
+| Hostname ops | `https://gateway.paqsystems.com/agent-hub` (SPEC histórico `paqsuite.com`) |
+
+Siguiente D10: **HU-004 / TR-005**.

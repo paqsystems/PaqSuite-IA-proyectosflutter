@@ -35,7 +35,7 @@ network_ok → gateway_authenticated → sql_connection_ok → schema_ready → 
 | Estado / síntoma | Significado | Tramo |
 |------------------|-------------|--------|
 | No handshake WSS / no llega al hub | URL, puerto, proceso Gateway | Red / PaqGateway |
-| Conecta pero no queda `online` | Token, `RegisterAgent`, heartbeat / TTL (30 s / 90 s) | Auth + heartbeat |
+| Conecta pero no queda `online` | Token, query M8, heartbeat / TTL (30 s / 90 s) | Auth + heartbeat |
 | Job → `offline` | Heartbeat fuera de TTL o agente caído; **no** se intenta SQL remoto | Presencia |
 | Job → `degraded` | Red/auth OK; SQL o esquema no | SQL local |
 | Job → `timeout` | El job llegó; la espera se venció (SQL/SP o ida-vuelta) | Mirar tramos de duración |
@@ -71,8 +71,30 @@ Invoke-RestMethod http://127.0.0.1:5100/internal/agents/lab-agent-01/status -Hea
 $body = '{"traceId":"01MANUAL","agentId":"lab-agent-01","clientId":"lab","operation":"diagnostics.run","timeoutSeconds":15,"parameters":{}}'
 Invoke-RestMethod http://127.0.0.1:5100/internal/jobs/send -Method Post -Headers $h -ContentType "application/json" -Body $body
 ```
-| 2 | Gateway + `PaqAgent` (config manual) | Conecta, registra, heartbeat, status `online` | `src/PaqAgent` (TR-005) |
-| 3 | + SQL local de lab | Readiness hasta `sql_connection_ok` / `schema_ready` | Agente + SQL |
+**Tramo 2 (TR-005) — PaqAgent real:**
+
+```powershell
+# Una vez: copiar plantilla (no commitear secretos)
+Copy-Item src/PaqAgent/appsettings.local.json.example src/PaqAgent/appsettings.local.json
+
+# Terminal A — Gateway (Dev stub)
+dotnet run --project src/PaqGateway
+
+# Terminal B — Agente
+dotnet run --project src/PaqAgent
+
+# Terminal C — status
+$h = @{ "X-Paq-Internal-Api-Key" = "lab-internal-api-key" }
+Invoke-RestMethod http://127.0.0.1:5100/internal/agents/lab-agent-01/status -Headers $h
+# Esperado: status online mientras B corre
+```
+
+Logs del agente: `src/PaqAgent/logs/paqagent-*.log` (o bajo el output de `dotnet run`). **Sin** token en claro en logs (URL redactada).
+
+| # | Qué levantás | Qué comprobás | Repo / pieza |
+|---|--------------|---------------|--------------|
+| 2 | Gateway + `PaqAgent` (config manual) | Conecta (query M8), heartbeat, status `online` | `src/PaqAgent` (TR-005) |
+| 3 | + SQL local de lab | Readiness hasta `sql_connection_ok` | Agente + SQL |
 | 4 | `POST /internal/jobs/send` (`diagnostics.run`) **sin Laravel** | Round-trip, estados D12, `traceId` | Gateway + Agente (prep. TR-006) |
 | 5 | Laravel (TANGO) → Gateway de lab o VPC | Ruteo por `agent_id`; sin exigir `host` | `PaqSuite-IA-TANGO` |
 | 6 | Gateway AWS + agente con salida 443 | Internet real, sin Tailscale | TR-003 / HU-002 |
@@ -103,8 +125,9 @@ Archivo **junto al binario** del agente (no commitear secretos). Valores de ejem
 
 Notas:
 
-- `gatewayUrl` en lab = localhost (D8). En prod = `https://gateway.paqsuite.com/agent-hub`.
+- `gatewayUrl` en lab = localhost (D8). En prod ops = `https://gateway.paqsystems.com/agent-hub`.
 - **Sin** `dev-agent-token`. Si el token está vacío, el agente no debe quedar online.
+- Plantilla versionada: `src/PaqAgent/appsettings.local.json.example` → copiar a `appsettings.local.json` (gitignored).
 - SQL puede omitirse solo para verdear tramo 2 (online); tramos 3–4 exigen SQL alcanzable.
 - Este archivo lo escribe el instalador en HU-003; en lab se edita a mano (D10).
 
