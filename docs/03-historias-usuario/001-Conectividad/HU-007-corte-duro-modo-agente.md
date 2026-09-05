@@ -3,15 +3,16 @@
 | Campo | Valor |
 |-------|--------|
 | Identificador | HU-007 |
-| Estado | Pendiente |
+| Estado | Especificado |
 | Épica | MVP conectividad (001-Conectividad) |
 | Prioridad | MUST |
 | Roles | Usuario de PaqSuite |
-| Dependencias | HU-006 |
+| Dependencias | HU-006 **Finalizado** |
 | Clasificación | HU SIMPLE |
 | Repo de implementación | **PaqSuite-IA-TANGO** |
 | TR | [TR-008](../../04-tareas/001-Conectividad/TR-008-corte-duro-modo-agente.md) |
 | SPEC | [SPEC-AGW-001](../../02-producto/SPEC-AGW-001-producto.md) §7; D5 |
+| C1 | [c1-20260905-TR-008.md](../../08-control/c1-20260905-TR-008.md) — Apto; Q1–Q7 |
 
 ### Narrativa
 
@@ -19,7 +20,7 @@ Como **usuario** quiero **un mensaje claro si el servidor del cliente (modo agen
 
 ### Criterios de aceptación
 
-1. Tenant con `agent_id` y agente detenido → API Laravel error `AGENT_OFFLINE` (HTTP 503, no 401).
+1. Tenant con `agent_id` y agente detenido → API Laravel error `AGENT_OFFLINE` (HTTP **503**, no 401).
 2. Con `agent_id` presente: no se lee `host` de `empresas_conexion` para reintentar.
 3. Log Laravel: warning con agentId, sin secretos.
 4. Test automatizado (unitario Laravel o de contrato) que falle si alguien reintroduce el fallback **para modo agente**.
@@ -39,3 +40,5 @@ Feature: Corte duro modo agente
     When el usuario dispara una consulta live
     Then Laravel puede usar SQL directo (transición MVP)
 ```
+
+Siguiente: **paso D1** de TR-008.
