@@ -9,6 +9,7 @@
 | Orden D10 | 5 |
 | Dependencia | TR-006 Finalizado |
 | C1 | [c1-20260905-TR-007.md](../../08-control/c1-20260905-TR-007.md) — Apto; Q1–Q9 |
+| D1 | [d1-20260905-TR-007.md](../../08-control/d1-20260905-TR-007.md) — pendiente confirmación |
 
 ### Decisiones cerradas (post-C1)
 
@@ -53,4 +54,4 @@
 | Archivos | |
 | Comandos | |
 | Notas | Laravel en `PaqSuite-IA-TANGO`. C1 Q1–Q9. |
-| Pendientes | D1 → D |
+| Pendientes | Confirmación D1 → D |
