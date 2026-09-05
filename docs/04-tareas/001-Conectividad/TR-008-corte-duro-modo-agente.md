@@ -3,20 +3,34 @@
 | Campo | Valor |
 |-------|--------|
 | TR | TR-008 |
-| Estado | Pendiente |
+| Estado | Especificado |
 | HU | [HU-007](../../03-historias-usuario/001-Conectividad/HU-007-corte-duro-modo-agente.md) |
 | **Repo** | **`PaqSuite-IA-TANGO`** (no se scaffoldea ni implementa en este repo) |
 | Orden D10 | 6 |
+| Dependencia | TR-007 Finalizado |
+| C1 | [c1-20260905-TR-008.md](../../08-control/c1-20260905-TR-008.md) — Apto; Q1–Q7 |
 
-### Tareas
+### Decisiones cerradas (post-C1)
 
-- [ ] Selector: si hay `agent_id` → **solo** Gateway. Offline → error 503 `AGENT_OFFLINE`. Nunca SQL por `host`.
-- [ ] Si **no** hay `agent_id` → camino SQL directo legacy **sigue permitido** en MVP (transición hasta transformación total).
-- [ ] Quitar o no usar `host` en resolución de consultas live **cuando** hay `agent_id`.
-- [ ] Test que falle si se reintroduce fallback SQL para un tenant con `agent_id`.
-- [ ] Test (o caso documentado) de tenant sin `agent_id` que aún usa SQL directo.
-- [ ] Grep de control: ningún servicio de negocio nuevo mezcla “agente offline → SQL directo”.
-- [ ] **Prohibido:** Tailscale, fallback modo agente, `host` como llave de ruteo del tenant con `agent_id`.
+| ID | Tema | Decisión |
+|----|------|----------|
+| Q1 | Alcance | Auth + todos los services Gateway; AuthService ya OK en TR-007 |
+| Q2 | HTTP login | `ERROR_AGENT_OFFLINE` → **503** (no 401) + señal `AGENT_OFFLINE` |
+| Q3 | Logs | Quitar texto “fallback a SQL directo” si no hay fallback real |
+| Q4 | Sin `agent_id` | SQL legacy solo donde ya exista (Auth); no inventar dual-path |
+| Q5 | Tests | 503 login + no-fallback AuthService + control grep/regresión |
+| Q6 | `host` | No ruteo/reintento con `agent_id` |
+| Q7 | Prohibidos | Tailscale, fallback modo agente |
+
+### Tareas (TANGO)
+
+- [ ] `AuthController` (login): mapear `ERROR_AGENT_OFFLINE` → HTTP **503**; respuesta con `AGENT_OFFLINE`.
+- [ ] Auditoría: con `agent_id`, offline/timeout/excepción Gateway → error claro **sin** SQL por `host` (corregir si queda alguno).
+- [ ] Renombrar logs engañosos “fallback a SQL directo” → degradado/AGENT_OFFLINE (`agent_id`, sin secretos).
+- [ ] Tenant **sin** `agent_id`: conservar SQL directo solo en caminos legacy existentes (Auth).
+- [ ] Test: login/modo agente offline → 503 + AGENT_OFFLINE.
+- [ ] Test/grep de control: no reintroducir fallback SQL tras fallo Gateway con `agent_id`.
+- [ ] **Prohibido:** Tailscale, fallback modo agente, `host` como llave de ruteo con `agent_id`.
 
 ### Traza (completar al ejecutar en TANGO)
 
@@ -24,5 +38,5 @@
 |--|--|
 | Archivos | |
 | Comandos | |
-| Notas | Trabajo Laravel: repo TANGO, mismos IDs de HU/TR. |
-| Pendientes | |
+| Notas | Trabajo Laravel: repo TANGO. C1 Q1–Q7. |
+| Pendientes | D1 → D |
