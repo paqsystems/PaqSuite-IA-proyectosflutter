@@ -3,7 +3,7 @@
 | Campo | Valor |
 |-------|--------|
 | TR | TR-007 |
-| Estado | Pendiente de Revisión |
+| Estado | Finalizado |
 | HU | [HU-006](../../03-historias-usuario/001-Conectividad/HU-006-auth-login.md) |
 | Repos | **este** (`PaqAgent`) + **TANGO** (`AuthService`) |
 | Orden D10 | 5 |
@@ -57,7 +57,7 @@
 | Archivos | `JobOperations.AuthLogin`; `PaqAgent/Auth/*`; `SqlConnectionStringFactory`; `Sql/dictionary/*`; `lab-local.md`; tests |
 | Comandos | `dotnet test tests/PaqAgent.Tests` → **12 passed** |
 | Notas | `encrypt=false` alineado a SSMS lab; diccionario `diccionario_000205_012` @ `192.168.41.2` |
-| Pendientes | Humano: Finalizado (F1/F hechos). E2e login Laravel/AWS opcionales. |
+| Pendientes | — (Finalizado 2026-09-05). E2e login Laravel/AWS opcionales. |
 
 ### Traza (TANGO)
 

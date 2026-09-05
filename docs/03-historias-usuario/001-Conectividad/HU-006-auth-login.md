@@ -3,7 +3,7 @@
 | Campo | Valor |
 |-------|--------|
 | Identificador | HU-006 |
-| Estado | Pendiente de Revisión |
+| Estado | Finalizado |
 | Épica | MVP conectividad (001-Conectividad) |
 | Prioridad | MUST |
 | Roles | Usuario de PaqSuite |
