@@ -57,7 +57,7 @@
 | Archivos | `JobOperations.AuthLogin`; `PaqAgent/Auth/*`; `SqlConnectionStringFactory`; `Sql/dictionary/*`; `lab-local.md`; tests |
 | Comandos | `dotnet test tests/PaqAgent.Tests` → **12 passed** |
 | Notas | `encrypt=false` alineado a SSMS lab; diccionario `diccionario_000205_012` @ `192.168.41.2` |
-| Pendientes | F1/F |
+| Pendientes | Humano: Finalizado (F1/F hechos). E2e login Laravel/AWS opcionales. |
 
 ### Traza (TANGO)
 
