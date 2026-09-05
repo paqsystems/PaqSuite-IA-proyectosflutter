@@ -9,6 +9,7 @@
 | Orden D10 | 6 |
 | Dependencia | TR-007 Finalizado |
 | C1 | [c1-20260905-TR-008.md](../../08-control/c1-20260905-TR-008.md) — Apto; Q1–Q7 |
+| D1 | [d1-20260905-TR-008.md](../../08-control/d1-20260905-TR-008.md) — pendiente confirmación |
 
 ### Decisiones cerradas (post-C1)
 
@@ -39,4 +40,4 @@
 | Archivos | |
 | Comandos | |
 | Notas | Trabajo Laravel: repo TANGO. C1 Q1–Q7. |
-| Pendientes | D1 → D |
+| Pendientes | Confirmación D1 → D en TANGO |
