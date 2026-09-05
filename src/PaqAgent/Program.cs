@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using PaqAgent;
+using PaqAgent.Diagnostics;
 using PaqAgent.Options;
 using Serilog;
 
@@ -14,6 +15,8 @@ builder.Services.AddOptions<AgentOptions>()
         "AgentToken 'dev-agent-token' is forbidden.");
 
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<ISqlConnectionPinger, SqlConnectionPinger>();
+builder.Services.AddSingleton<DiagnosticsRunner>();
 builder.Services.AddWindowsService(options =>
 {
     options.ServiceName = "PaqAgent";

@@ -34,6 +34,12 @@ public static class HubMethodNames
     public const string Heartbeat = "Heartbeat";
 }
 
+/// <summary>Operaciones de lista blanca MVP.</summary>
+public static class JobOperations
+{
+    public const string DiagnosticsRun = "diagnostics.run";
+}
+
 public sealed class JobRequest
 {
     public string TraceId { get; set; } = "";

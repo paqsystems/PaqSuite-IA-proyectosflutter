@@ -95,7 +95,42 @@ Logs del agente: `src/PaqAgent/logs/paqagent-*.log` (o bajo el output de `dotnet
 |---|--------------|---------------|--------------|
 | 2 | Gateway + `PaqAgent` (config manual) | Conecta (query M8), heartbeat, status `online` | `src/PaqAgent` (TR-005) |
 | 3 | + SQL local de lab | Readiness hasta `sql_connection_ok` | Agente + SQL |
-| 4 | `POST /internal/jobs/send` (`diagnostics.run`) **sin Laravel** | Round-trip, estados D12, `traceId` | Gateway + Agente (prep. TR-006) |
+| 4 | `POST /internal/jobs/send` (`diagnostics.run`) **sin Laravel** | Round-trip, estados D12, `traceId`, `sqlConnectionOk` / `degraded` | Gateway + Agente (TR-006 este repo) |
+
+**Tramo 4 (TR-006) — diagnostics sin TANGO:**
+
+**Dónde:** terminal de **Cursor**, raíz del repo. **Abrí tres terminales nuevas** (no asumas procesos previos).
+
+1. Terminal 1: `dotnet run --project src/PaqGateway` (dejar corriendo)  
+2. Terminal 2: `dotnet run --project src/PaqAgent` (dejar corriendo; hace falta `appsettings.local.json`)  
+3. Terminal 3: el `Invoke-RestMethod` de abajo  
+
+Con Gateway + PaqAgent ya arriba. SQL en `appsettings.local.json` opcional.
+
+```powershell
+$h = @{ "X-Paq-Internal-Api-Key" = "lab-internal-api-key" }
+$body = @{
+  traceId = "01DIAGLAB"
+  agentId = "lab-agent-01"
+  clientId = "lab"
+  operation = "diagnostics.run"
+  timeoutSeconds = 30
+  parameters = @{}
+} | ConvertTo-Json
+Invoke-RestMethod http://127.0.0.1:5100/internal/jobs/send -Method Post -Headers $h -ContentType "application/json" -Body $body
+```
+
+| SQL en local.json | Esperado `status` | `data.sqlConnectionOk` |
+|-------------------|-------------------|-------------------------|
+| Vacío / ausente | `degraded` | `false` |
+| Válido y alcanzable | `success` | `true` (`readiness` ≈ `operational`) |
+| Server incorrecto | `degraded` | `false` |
+| Agente detenido | `offline` | (sin data de agente) |
+
+Sin Tailscale. Laravel/TANGO = tramo 5 (otra TR slice).
+
+| # | Qué levantás | Qué comprobás | Repo / pieza |
+|---|--------------|---------------|--------------|
 | 5 | Laravel (TANGO) → Gateway de lab o VPC | Ruteo por `agent_id`; sin exigir `host` | `PaqSuite-IA-TANGO` |
 | 6 | Gateway AWS + agente con salida 443 | Internet real, sin Tailscale | TR-003 / HU-002 |
 | 7 | Instalador GUI | UI, prueba SQL, prueba gateway | HU-003 / TR-004 (**después** del caño) |

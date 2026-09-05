@@ -1,7 +1,7 @@
 using System.Reflection;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
+using PaqAgent.Diagnostics;
 using PaqAgent.Options;
 using PaqContracts;
 
@@ -21,17 +21,24 @@ public sealed class AgentGatewayConnector : BackgroundService
     private readonly AgentOptions agentOptions;
     private readonly ILogger<AgentGatewayConnector> logger;
     private readonly TimeProvider timeProvider;
+    private readonly DiagnosticsRunner diagnosticsRunner;
     private HubConnection? hubConnection;
     private string readiness = "network_ok";
+    private readonly string agentVersion;
+    private readonly string machineName;
 
     public AgentGatewayConnector(
         IOptions<AgentOptions> agentOptions,
         ILogger<AgentGatewayConnector> logger,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        DiagnosticsRunner diagnosticsRunner)
     {
         this.agentOptions = agentOptions.Value;
         this.logger = logger;
         this.timeProvider = timeProvider;
+        this.diagnosticsRunner = diagnosticsRunner;
+        agentVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0";
+        machineName = Environment.MachineName;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -49,8 +56,6 @@ public sealed class AgentGatewayConnector : BackgroundService
             return;
         }
 
-        var agentVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0";
-        var machineName = Environment.MachineName;
         var sqlServerName = agentOptions.HasSqlConfig ? agentOptions.Sql.Server : null;
 
         logger.LogInformation(
@@ -64,7 +69,7 @@ public sealed class AgentGatewayConnector : BackgroundService
                 agentOptions.AgentId,
                 agentOptions.ClientId));
 
-        readiness = await ResolveInitialReadinessAsync(stoppingToken).ConfigureAwait(false);
+        readiness = "gateway_authenticated";
 
         var hubUrl = HubUrlBuilder.BuildHubUrl(
             agentOptions.GatewayUrl,
@@ -119,7 +124,6 @@ public sealed class AgentGatewayConnector : BackgroundService
                 {
                     logger.LogInformation("Conectando al Gateway…");
                     await hubConnection.StartAsync(stoppingToken).ConfigureAwait(false);
-                    readiness = await ResolveInitialReadinessAsync(stoppingToken).ConfigureAwait(false);
                     if (readiness is "network_ok")
                     {
                         readiness = "gateway_authenticated";
@@ -131,7 +135,7 @@ public sealed class AgentGatewayConnector : BackgroundService
                         agentOptions.AgentId);
                 }
 
-                await SendHeartbeatAsync(agentVersion, stoppingToken).ConfigureAwait(false);
+                await SendHeartbeatAsync(stoppingToken).ConfigureAwait(false);
                 await Task.Delay(
                     TimeSpan.FromSeconds(AgentDefaults.HeartbeatSeconds),
                     stoppingToken).ConfigureAwait(false);
@@ -177,7 +181,7 @@ public sealed class AgentGatewayConnector : BackgroundService
         }
     }
 
-    private async Task SendHeartbeatAsync(string agentVersion, CancellationToken cancellationToken)
+    private async Task SendHeartbeatAsync(CancellationToken cancellationToken)
     {
         if (hubConnection is null || hubConnection.State != HubConnectionState.Connected)
         {
@@ -215,10 +219,24 @@ public sealed class AgentGatewayConnector : BackgroundService
         var started = timeProvider.GetUtcNow();
         JobResult result;
 
-        if (!string.Equals(readiness, "operational", StringComparison.Ordinal)
-            && !string.Equals(readiness, "gateway_authenticated", StringComparison.Ordinal)
-            && !string.Equals(readiness, "sql_connection_ok", StringComparison.Ordinal)
-            && !string.Equals(readiness, "schema_ready", StringComparison.Ordinal))
+        if (string.Equals(request.Operation, JobOperations.DiagnosticsRun, StringComparison.Ordinal))
+        {
+            var outcome = await diagnosticsRunner
+                .RunAsync(agentOptions, agentVersion, machineName, CancellationToken.None)
+                .ConfigureAwait(false);
+            readiness = outcome.Readiness;
+            result = new JobResult
+            {
+                TraceId = request.TraceId,
+                JobId = request.JobId,
+                Status = outcome.Status,
+                Data = outcome.Data,
+                ErrorCode = outcome.ErrorCode,
+                ErrorMessage = outcome.ErrorMessage,
+                DurationMs = (long)(timeProvider.GetUtcNow() - started).TotalMilliseconds
+            };
+        }
+        else if (readiness is "network_ok")
         {
             result = new JobResult
             {
@@ -230,78 +248,26 @@ public sealed class AgentGatewayConnector : BackgroundService
                 DurationMs = (long)(timeProvider.GetUtcNow() - started).TotalMilliseconds
             };
         }
-        else if (agentOptions.HasSqlConfig
-                 && !string.Equals(readiness, "sql_connection_ok", StringComparison.Ordinal)
-                 && !string.Equals(readiness, "schema_ready", StringComparison.Ordinal)
-                 && !string.Equals(readiness, "operational", StringComparison.Ordinal))
-        {
-            // SQL configurado pero no verificado aún
-            result = new JobResult
-            {
-                TraceId = request.TraceId,
-                JobId = request.JobId,
-                Status = JobStatuses.Degraded,
-                ErrorCode = "SQL_NOT_READY",
-                ErrorMessage = "SQL configurado; verificación pendiente (TR-006 para diagnostics).",
-                DurationMs = (long)(timeProvider.GetUtcNow() - started).TotalMilliseconds
-            };
-        }
         else
         {
-            // TR-005: stub seguro sin SQL libre. diagnostics.run profundo = TR-006.
             result = new JobResult
             {
                 TraceId = request.TraceId,
                 JobId = request.JobId,
-                Status = JobStatuses.Success,
-                Data = new
-                {
-                    mock = true,
-                    operation = request.Operation,
-                    readiness,
-                    note = "TR-005 stub; SQL lista blanca en TR-006"
-                },
+                Status = JobStatuses.Failed,
+                ErrorCode = "OPERATION_NOT_ALLOWED",
+                ErrorMessage = $"operation '{request.Operation}' not in whitelist (MVP: {JobOperations.DiagnosticsRun})",
                 DurationMs = (long)(timeProvider.GetUtcNow() - started).TotalMilliseconds
             };
         }
 
         await hubConnection.InvokeAsync(HubMethodNames.CompleteJob, result).ConfigureAwait(false);
         logger.LogInformation(
-            "CompleteJob enviado status={Status} jobId={JobId} traceId={TraceId}",
+            "CompleteJob enviado status={Status} jobId={JobId} traceId={TraceId} durationMs={DurationMs} readiness={Readiness}",
             result.Status,
             result.JobId,
-            result.TraceId);
-    }
-
-    private async Task<string> ResolveInitialReadinessAsync(CancellationToken cancellationToken)
-    {
-        if (!agentOptions.HasSqlConfig)
-        {
-            return "gateway_authenticated";
-        }
-
-        try
-        {
-            var builder = new SqlConnectionStringBuilder
-            {
-                DataSource = agentOptions.Sql.Server,
-                InitialCatalog = agentOptions.Sql.Database,
-                UserID = agentOptions.Sql.User,
-                Password = agentOptions.Sql.Password,
-                Encrypt = true,
-                TrustServerCertificate = true,
-                ConnectTimeout = 5
-            };
-
-            await using var connection = new SqlConnection(builder.ConnectionString);
-            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-            logger.LogInformation("SQL lab alcanzable server={Server} database={Database}", agentOptions.Sql.Server, agentOptions.Sql.Database);
-            return "sql_connection_ok";
-        }
-        catch (Exception ex)
-        {
-            logger.LogWarning(ex, "SQL lab no alcanzable; readiness=gateway_authenticated");
-            return "gateway_authenticated";
-        }
+            result.TraceId,
+            result.DurationMs,
+            readiness);
     }
 }
