@@ -56,6 +56,7 @@
 | Commit | `eac2eeb` — slice PaqAgent |
 | Notas | Lab sin SQL 2026-09-05: `degraded` / `SQL_NOT_CONFIGURED` OK. |
 | Pendientes | F1/F |
+| Nota | TANGO: parameters vacío debe ir como {} (no []) |
 
 ### Traza (TANGO)
 
@@ -63,7 +64,7 @@
 |--|--|
 | Archivos | `backend/app/Services/Agents/AgentGatewayClient.php`; `backend/config/agent_gateway.php`; `.env.example`; `tests/Unit/Services/Agents/AgentGatewayClientTest.php` |
 | Notas | Q1/Q2/Q5/Q8. Rutas inbound Gateway→Laravel siguen con `X-Internal-Api-Key` (espejo inverso; fuera de TR-006). |
-| Pendientes | F1/F; e2e Laravel→Gateway opcional en lab |
+| Evidencia lab | 2026-09-05 `runDiagnostics` → `degraded`/`SQL_NOT_CONFIGURED` (fix `parameters` `{}`) |
 
 ### Prueba manual — lab tramo 4 (solo este repo)
 
