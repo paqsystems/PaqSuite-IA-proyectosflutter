@@ -1,6 +1,18 @@
-@PaqGateway_HostAddress = http://localhost:5276
+@http://127.0.0.1:5100
+X-Paq-Internal-Api-Key: lab-internal-api-key
 
-GET {{PaqGateway_HostAddress}}/weatherforecast/
-Accept: application/json
+### Status
+GET /internal/agents/lab-agent-01/status
 
-###
+### Send job
+POST /internal/jobs/send
+Content-Type: application/json
+
+{
+  "traceId": "01TEST",
+  "agentId": "lab-agent-01",
+  "clientId": "lab",
+  "operation": "diagnostics.run",
+  "timeoutSeconds": 15,
+  "parameters": {}
+}

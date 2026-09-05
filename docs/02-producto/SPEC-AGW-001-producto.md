@@ -4,10 +4,13 @@
 |-------|--------|
 | Identificador | SPEC-AGW-001 |
 | Producto | PAQSuite IA — Agente local Tango |
-| Versión | 1.1 |
-| Fecha | 2026-09-03 |
-| Estado | Cerrado para MVP (debates D1–D6 + aportes Codex incorporados) |
-| Repos | `paqsuite-IA-AgenteCliente`, contrato en `PaqSuite-IA-TANGO` |
+| Versión | 1.2 |
+| Fecha | 2026-09-04 |
+| Estado | Vigente MVP (debates D1–D16). Slice HU-001 cerrado; foco actual = Gateway (HU-002) |
+| Repos | este (`PaqSuite-IA-AgenteCliente-PAQ`: `PaqGateway` / `PaqContracts`); contrato Laravel en `PaqSuite-IA-TANGO` |
+| HU/TR Gateway | [HU-002](../03-historias-usuario/001-Conectividad/HU-002-gateway-aws.md) → [TR-002](../04-tareas/001-Conectividad/TR-002-paqgateway-app.md) (app) + [TR-003](../04-tareas/001-Conectividad/TR-003-deploy-gateway-aws.md) (deploy AWS) |
+
+**No** usar [SPEC-AGW-002](agente-gateway/SPEC-AGW-002-ciclo-sql-y-updates.md) para el Gateway: ese placeholder es **Fase 2/3** (update + objetos SQL), no el MVP de conectividad.
 
 Este documento es la **fuente de verdad**. Si una HU, un TR o un agente de IA contradicen este SPEC, manda el SPEC. Si falta algo, se actualiza el SPEC **antes** de codear.
 
@@ -158,14 +161,40 @@ Cada release publica **SHA256** del zip/exe en las notas (firma criptográfica =
 
 ## 6. Gateway en Amazon
 
-- Una instancia (MVP) en la **misma VPC** que Laravel.
-- HTTPS/WSS en 443 (`gateway.paqsuite.com`); hub SignalR `/agent-hub`.
+Alcance de producto (MVP). Construcción en dos TRs: **TR-002** = aplicación .NET en este repo; **TR-003** = publicación AWS + checklist ([deploy-gateway-aws.md](../06-operacion/deploy-gateway-aws.md)). Lab local: [lab-local.md](../06-operacion/lab-local.md) / D8.
+
+### 6.1 Despliegue y red
+
+- Una instancia (MVP) en la **misma VPC** que Laravel. Sin Redis backplane / multi-instancia (fase 2).
+- Producción: HTTPS/WSS en 443 (`gateway.paqsuite.com`); hub SignalR `/agent-hub`.
+- Lab/dev: hub en `http://127.0.0.1:5100/agent-hub` (D8). No Tailscale.
 - Kestrel interno; Nginx o ALB termina TLS y hace upgrade WebSocket.
-- Endpoints internos `/internal/jobs/send` y `/internal/agents/{agentId}/status` protegidos con API key.
-- El Gateway autentica agentes contra Laravel (o contra el catálogo de tokens). No hardcodea la lista de clientes en `appsettings` de producción.
-- Laravel habla al Gateway por URL **interna** (IP privada / DNS interno), no por Tailscale.
-- **Online** = último heartbeat dentro del TTL configurado, **no** solo “existe un socket en memoria”.
-- Al reiniciar: agentes reconectan solos; jobs en vuelo → `cancelled` (auditados), sin duplicar.
+- Security Group: **443** alcanzable desde Internet (agentes); **SQL 1433 no** abierto a Internet; `/internal/*` solo desde red privada / SG de Laravel.
+- Secretos por entorno (API key interna, URL Laravel de auth). Prohibido `change-me-in-production` en el servidor.
+
+### 6.2 API y SignalR
+
+- Hub público (agentes): `/agent-hub` (WSS en prod; HTTP en lab).
+- Endpoints internos (Laravel → Gateway), API key obligatoria:
+  - `POST /internal/jobs/send`
+  - `GET /internal/agents/{agentId}/status`
+- El Gateway autentica agentes contra Laravel (`POST /api/internal/gateway/authenticate`, D4) como **fuente de verdad** del token; cache corta en Gateway permitida. No hardcodear lista de clientes/tokens en `appsettings` de producción.
+- Laravel habla al Gateway por URL **interna** (IP privada / DNS interno), no por el hostname público ni Tailscale.
+
+### 6.3 Online, heartbeat y reinicio
+
+- **Online** = último heartbeat dentro del TTL, **no** solo “existe un socket en memoria” (D16 / H4 / H8).
+- Defaults scaffold: heartbeat **30 s**, TTL **90 s** (`PaqContracts.AgentDefaults`). Autoridad del online: **Gateway**; Laravel consulta el status API.
+- Registro en memoria MVP: `agentId` → `connectionId` + `lastSeenAt` (y observación `lastSeenIp` si aplica; no rutea).
+- Al reiniciar el proceso: agentes reconectan solos; jobs en vuelo → `cancelled` (auditados), sin reentrega silenciosa ni duplicar.
+
+### 6.4 Preguntas abiertas (paso A1 — no inventar en D)
+
+| ID | Tema | Notas |
+|----|------|--------|
+| Q-G1 | Contrato request/response de `POST /api/internal/gateway/authenticate` | Path en D4; body/códigos HTTP exactos aún no fijados en este SPEC |
+| Q-G2 | Duración de la “cache corta” de token en Gateway | TR-002 la menciona; falta default numérico (segundos) |
+| Q-G3 | Forma JSON del `GET .../status` (campos online/degraded/offline + timestamps) | Alineado a §7 estados; schema de respuesta pendiente de cerrar |
 
 ---
 

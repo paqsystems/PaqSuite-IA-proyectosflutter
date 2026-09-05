@@ -11,9 +11,33 @@ public static class JobStatuses
     public const string Cancelled = "cancelled";
 }
 
+/// <summary>Estados de presencia del agente (GET /internal/agents/{id}/status).</summary>
+public static class AgentPresenceStatuses
+{
+    public const string Online = "online";
+    public const string Offline = "offline";
+    public const string Degraded = "degraded";
+}
+
+public static class ErrorCodes
+{
+    public const string AgentOffline = "AGENT_OFFLINE";
+    public const string AgentTimeout = "AGENT_TIMEOUT";
+    public const string AgentAuthFailed = "AGENT_AUTH_FAILED";
+}
+
+/// <summary>Nombres de métodos hub Agent↔Gateway (M9).</summary>
+public static class HubMethodNames
+{
+    public const string ExecuteJob = "ExecuteJob";
+    public const string CompleteJob = "CompleteJob";
+    public const string Heartbeat = "Heartbeat";
+}
+
 public sealed class JobRequest
 {
     public string TraceId { get; set; } = "";
+    public string JobId { get; set; } = "";
     public string AgentId { get; set; } = "";
     public string ClientId { get; set; } = "";
     public string Operation { get; set; } = "";
@@ -43,7 +67,15 @@ public sealed class AgentHeartbeat
     public DateTimeOffset TimestampUtc { get; set; }
 }
 
-/// <summary>Heartbeat 30 s / TTL online 90 s (default scaffold H8). No es lógica de HU.</summary>
+public sealed class AgentStatusResponse
+{
+    public string AgentId { get; set; } = "";
+    public string Status { get; set; } = AgentPresenceStatuses.Offline;
+    public DateTimeOffset? LastSeenAt { get; set; }
+    public string? LastSeenIp { get; set; }
+}
+
+/// <summary>Heartbeat 30 s / TTL online 90 s (H8).</summary>
 public static class AgentDefaults
 {
     public const int HeartbeatSeconds = 30;

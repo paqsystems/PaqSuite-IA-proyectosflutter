@@ -51,6 +51,26 @@ Correlación: el mismo **`traceId`** en log de Laravel (cuando exista), Gateway 
 | # | Qué levantás | Qué comprobás | Repo / pieza |
 |---|--------------|---------------|--------------|
 | 1 | Solo `PaqGateway` en `:5100` | Hub `/agent-hub`; `GET /internal/agents/{id}/status` con API key; **401/403** sin key | `src/PaqGateway` (TR-002) |
+
+**Dev (TR-002):** en `appsettings.Development.json`, `Gateway:UseDevAuthStub=true` + `Gateway:InternalApiKey` (header `X-Paq-Internal-Api-Key`). El stub **no** vale en Production. Conexión hub: `.../agent-hub?agentId=&clientId=&agentToken=`.
+
+Mock de agente (lab, no es TR-005):
+
+```powershell
+# Terminal A
+dotnet run --project src/PaqGateway
+
+# Terminal B
+dotnet run --project tools/LabAgentMock
+# opcional: hubUrl agentId clientId agentToken
+# dotnet run --project tools/LabAgentMock -- http://127.0.0.1:5100/agent-hub lab-agent-01 lab lab-token-manual
+
+# Terminal C
+$h = @{ "X-Paq-Internal-Api-Key" = "lab-internal-api-key" }
+Invoke-RestMethod http://127.0.0.1:5100/internal/agents/lab-agent-01/status -Headers $h
+$body = '{"traceId":"01MANUAL","agentId":"lab-agent-01","clientId":"lab","operation":"diagnostics.run","timeoutSeconds":15,"parameters":{}}'
+Invoke-RestMethod http://127.0.0.1:5100/internal/jobs/send -Method Post -Headers $h -ContentType "application/json" -Body $body
+```
 | 2 | Gateway + `PaqAgent` (config manual) | Conecta, registra, heartbeat, status `online` | `src/PaqAgent` (TR-005) |
 | 3 | + SQL local de lab | Readiness hasta `sql_connection_ok` / `schema_ready` | Agente + SQL |
 | 4 | `POST /internal/jobs/send` (`diagnostics.run`) **sin Laravel** | Round-trip, estados D12, `traceId` | Gateway + Agente (prep. TR-006) |

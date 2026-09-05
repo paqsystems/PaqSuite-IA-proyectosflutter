@@ -3,7 +3,7 @@
 | Campo | Valor |
 |-------|--------|
 | Identificador | HU-001 |
-| Estado | Pendiente |
+| Estado | Finalizado |
 | Épica | MVP conectividad (001-Conectividad) |
 | Prioridad | MUST |
 | Roles | Operador PaqSystems |

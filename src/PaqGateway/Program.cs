@@ -1,44 +1,89 @@
+using System.Text.Json;
+using Microsoft.Extensions.Options;
+using PaqContracts;
+using PaqGateway.Hubs;
+using PaqGateway.Middleware;
+using PaqGateway.Options;
+using PaqGateway.Services;
+using PaqGateway.Hosting;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.Configure<GatewayOptions>(builder.Configuration.GetSection(GatewayOptions.SectionName));
+builder.Services.Configure<LaravelApiOptions>(builder.Configuration.GetSection(LaravelApiOptions.SectionName));
+
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<IAgentRegistry, AgentRegistry>();
+builder.Services.AddSingleton<IJobCoordinator, JobCoordinator>();
+builder.Services.AddSingleton<DevStubAgentAuthenticator>();
+builder.Services.AddSingleton<LaravelAgentAuthenticator>();
+builder.Services.AddSingleton<IAgentAuthenticator, AgentAuthenticatorFacade>();
+builder.Services.AddSingleton<IJobDispatchService, JobDispatchService>();
+builder.Services.AddHostedService<JobShutdownService>();
+
+builder.Services.AddHttpClient(LaravelAgentAuthenticator.HttpClientName, (sp, client) =>
+{
+    var options = sp.GetRequiredService<IOptions<LaravelApiOptions>>().Value;
+    if (!string.IsNullOrWhiteSpace(options.BaseUrl))
+    {
+        client.BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + "/");
+    }
+});
+
+builder.Services.AddSignalR().AddJsonProtocol(options =>
+{
+    options.PayloadSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+});
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsProduction())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    var gatewayOptions = app.Services.GetRequiredService<IOptions<GatewayOptions>>().Value;
+    if (gatewayOptions.UseDevAuthStub)
+    {
+        throw new InvalidOperationException("Gateway:UseDevAuthStub cannot be true in Production.");
+    }
 }
 
-app.UseHttpsRedirection();
+app.UseMiddleware<InternalApiKeyMiddleware>();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+app.MapHub<AgentHub>("/agent-hub");
 
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/internal/agents/{agentId}/status", (
+    string agentId,
+    IAgentRegistry registry,
+    IOptions<GatewayOptions> gatewayOptions,
+    TimeProvider timeProvider) =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+    var ttl = gatewayOptions.Value.OnlineTtlSeconds ?? AgentDefaults.OnlineTtlSeconds;
+    registry.TryGet(agentId, out var registration);
+    var status = registry.ResolvePresence(registration, timeProvider.GetUtcNow(), ttl);
+    var response = new AgentStatusResponse
+    {
+        AgentId = agentId,
+        Status = status,
+        LastSeenAt = registration?.LastSeenAt,
+        LastSeenIp = registration?.LastSeenIp
+    };
+    return Results.Json(response, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+});
+
+app.MapPost("/internal/jobs/send", async (
+    JobRequest request,
+    IJobDispatchService dispatchService,
+    CancellationToken cancellationToken) =>
+{
+    var result = await dispatchService.SendAsync(request, cancellationToken);
+    return Results.Json(result, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+});
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+public partial class Program;
