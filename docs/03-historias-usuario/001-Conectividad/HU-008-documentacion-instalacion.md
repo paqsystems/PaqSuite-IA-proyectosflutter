@@ -3,15 +3,18 @@
 | Campo | Valor |
 |-------|--------|
 | Identificador | HU-008 |
-| Estado | Pendiente |
+| Estado | Pendiente de Revisión |
 | Épica | MVP conectividad (001-Conectividad) |
 | Prioridad | MUST |
 | Roles | Operador PaqSystems, administrador del cliente |
-| Dependencias | HU-002, HU-003 (para no documentar vapor) |
+| Dependencias | HU-002, HU-003 Finalizado |
 | Clasificación | HU SIMPLE |
 | Repo de implementación | este (`docs/06-operacion/`) |
-| TR | [TR-009](../../04-tareas/001-Conectividad/TR-009-docs-instalacion.md) |
+| TR | [TR-009](../../04-tareas/001-Conectividad/TR-009-docs-instalacion.md) — Pendiente de Revisión |
 | SPEC | [SPEC-AGW-001](../../02-producto/SPEC-AGW-001-producto.md) |
+| C1 | [c1-20260906-TR-009.md](../../08-control/c1-20260906-TR-009.md) — Apto |
+| F1 | [f1-20260906-TR-009.md](../../08-control/f1-20260906-TR-009.md) — Aprobado con observaciones |
+| F | [f-20260906-TR-009.md](../../08-control/f-20260906-TR-009.md) — apto Finalizado |
 
 ### Narrativa
 
@@ -38,4 +41,12 @@ Detalle:
 
 Sin estos documentos el MVP no se acepta, aunque el código funcione en el laboratorio.
 
-**Orden:** no redactar el instructivo final del agente hasta que HU-003 (instalador) esté verde; el checklist AWS puede adelantarse (ya hay borrador en `deploy-gateway-aws.md`).
+### Verificación (paso D)
+
+| CA | Evidencia |
+|----|-----------|
+| 1–4, 6–7 | `instalacion-agente.md` completo + checklist 10 pasos |
+| 5 | `deploy-gateway-aws.md` §1–10 + §11 diagnostics/auth + §12 prohibidos |
+| URLs | `urls-deploy.md` → `PaqSuite-IA-proyectosflutter/releases/latest` |
+
+Siguiente: humano puede marcar **Finalizado** (salvedad: publicar zip+SHA256 en GitHub Releases).

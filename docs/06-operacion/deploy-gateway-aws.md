@@ -3,7 +3,7 @@
 | Campo | Valor |
 |-------|--------|
 | Origen | SPEC-AGW-001 §6, HU-002 CA 9–13, TR-003 (N1–N6), D2/D8 |
-| Estado | Runbook **ejecutable** (paso D TR-003). Plantillas en [deploy/](deploy/) |
+| Estado | Runbook **ejecutable** (TR-003 + cierre docs TR-009 / HU-008) |
 | Hub público | `https://gateway.paqsystems.com/agent-hub` |
 | Lab previo | [lab-local.md](lab-local.md) (verdear caño local antes de exigir AWS) |
 | C1 | [c1-20260905-TR-003.md](../08-control/c1-20260905-TR-003.md) |
@@ -218,7 +218,7 @@ sudo systemctl status paqgateway
 ### 10.5 Nginx + cert
 
 ```bash
-sudo cp /path/to/repo/docs/06-operacion/deploy/nginx-gateway.conf /etc/nginx/sites-available/gateway.paqsuite.com
+sudo cp /path/to/repo/docs/06-operacion/deploy/nginx-gateway.conf /etc/nginx/sites-available/gateway.paqsystems.com
 # o /etc/nginx/conf.d/gateway.conf en Amazon Linux
 # Descomentar ssl_certificate* tras emitir cert (certbot u otro)
 sudo nginx -t && sudo systemctl reload nginx
@@ -233,9 +233,34 @@ Ejecutar checklist §8. Completar ficha §9. Cerrar Traza en [TR-003](../04-tare
 
 ---
 
-## 11. Referencias
+## 11. Prueba funcional post-deploy (operador)
+
+Tras hub up + Laravel cableado:
+
+1. Instalar un agente de lab/piloto con [instalacion-agente.md](instalacion-agente.md) apuntando a `https://gateway.paqsystems.com/agent-hub`.
+2. Confirmar agente **online** (status interno desde Forge / PaqSuite).
+3. Disparar **`diagnostics.run`** (piloto HU-005) y una operación **`auth.login`** (HU-006) según runbooks de lab.
+
+Publish/systemd ya documentados en §10; no duplicar secretos aquí.
+
+---
+
+## 12. Qué no configurar (Gateway / AWS)
+
+- Tailscale como camino de producción o de agentes.
+- Abrir **1433** (SQL) a Internet o al SG del Gateway.
+- Publicar `/internal/*` en Nginx público (solo VPC + API key).
+- `Gateway__UseDevAuthStub=true` o `change-me-in-production` en el servidor.
+- Apuntar Laravel a la URL **pública** para jobs/status (usar IP privada `:5100`).
+- Fallback SQL modo agente si el Gateway/agente falla.
+
+---
+
+## 13. Referencias
 
 - Plantillas: [deploy/](deploy/)
 - URLs: [urls-deploy.md](urls-deploy.md)
+- Instalador cliente: [instalacion-agente.md](instalacion-agente.md)
+- Empaquetado zip: [empaquetado-instalador.md](empaquetado-instalador.md)
 - Lab: [lab-local.md](lab-local.md)
 - App Gateway: TR-002 (`src/PaqGateway`)

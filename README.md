@@ -22,7 +22,7 @@ Reformulación SDD de **PaqAgent + PaqGateway** (agente Windows saliente + gatew
 | [docs/03-historias-usuario/001-Conectividad/](docs/03-historias-usuario/001-Conectividad/) | HU-001…HU-008 (orden D10) |
 | [docs/04-tareas/001-Conectividad/](docs/04-tareas/001-Conectividad/) | TR-001…TR-009 |
 | [docs/05-open-spec/](docs/05-open-spec/) | Trazabilidad SPEC |
-| [docs/06-operacion/](docs/06-operacion/) | Lab local + runbooks (AWS/instalador placeholders) |
+| [docs/06-operacion/](docs/06-operacion/) | Lab local + runbooks (instalador cliente + Gateway AWS) |
 | [docs/08-control/](docs/08-control/) | Informes A1 / C1 / F |
 
 Dispatcher: `Hacé el paso A` … `Hacé el paso F` — [`.cursor/rules/00-dispatcher-agente-gateway.mdc`](.cursor/rules/00-dispatcher-agente-gateway.mdc).
@@ -39,11 +39,14 @@ Fase 2 SQL/updates y update de agente (no implementadas): mapa en [fases-roadmap
 | `src/PaqGateway` | ASP.NET Core + SignalR |
 | `src/PaqAgent` | Windows Worker Service |
 | `src/PaqAgentInstaller` | WinForms |
-| `tests/*` | xUnit (stubs) |
+| `tests/*` | xUnit |
 
 ```bash
 dotnet build PaqAgentGateway.sln
+dotnet test PaqAgentGateway.sln
 ```
+
+Operación: [instalacion-agente.md](docs/06-operacion/instalacion-agente.md) · [deploy-gateway-aws.md](docs/06-operacion/deploy-gateway-aws.md) · [urls-deploy.md](docs/06-operacion/urls-deploy.md).
 
 Versión: ver [VERSION](VERSION) (`0.1.0-mvp`).
 
