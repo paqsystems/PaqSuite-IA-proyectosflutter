@@ -153,7 +153,7 @@ Fase 2: ir portando SPs existentes (p. ej. `clientes.buscar`) como **datos de co
 |---------|---------|--------|
 | Desarrollo | `http://127.0.0.1:5100` en la misma máquina o VPC de dev | `GatewayUrl` a ese hub |
 | Staging | Gateway en AWS staging | Un agente de laboratorio |
-| Producción | `https://gateway.paqsuite.com/agent-hub` | Instalador con esa URL por defecto |
+| Producción | `https://gateway.paqsystems.com/agent-hub` | Instalador con esa URL por defecto |
 
 No hay entorno “PC del programador + Tailscale + SQL de cliente real” como camino oficial.
 
@@ -221,6 +221,7 @@ MVP: **exactamente un agente activo por tenant** (`cliente` / `X-Paq-Cliente`).
 
 ## D14 — Prueba de gateway en el instalador (cerrado 2026-09-03, debate D4)
 
+0. Prerrequisito runtime (D19): detectar .NET 8 Desktop x64; avisar / ofrecer instalar; aviso de posible reinicio; no seguir sin runtime OK.
 1. Validar campos obligatorios.
 2. Probar SQL local → si falla, **abortar** (no crea servicio).
 3. Probar salida al Gateway (HTTPS/WSS) → si falla, **abortar sin crear servicio** ni dejar instalación a medias. Error accionable (443 saliente / DNS / TLS).
@@ -288,5 +289,37 @@ Aplicados porque el humano no los fijó antes. Si hay que cambiarlos, se actuali
 | H4 `last_seen_at` | Autoridad en Gateway; Laravel consulta status API |
 | H15 Paralelo | Rama `sdd-reformulacion` + código nuevo en `src/` |
 | H8 TTL | Heartbeat 30 s, TTL 90 s (constantes en `PaqContracts`) |
+
+---
+
+## D19 — Prerrequisito .NET 8 en el instalador (cerrado 2026-09-05)
+
+El asistente de instalación **incluye un paso inicial de runtime**, aunque en un slice de D se implemente primero el aviso y después la oferta de instalación.
+
+### MUST
+
+1. **Detectar** si falta .NET 8 **Desktop** Runtime x64.
+2. Si falta: **avisar con mensaje claro** (no stack trace / error técnico crudo).
+3. Avisar que la instalación del runtime **puede requerir reiniciar el servidor** (ahora o al terminar el instalador de Microsoft).
+4. La UI del instalador es un **asistente por pasos** que contempla, como mínimo:
+   - Paso 0 — Runtime  
+   - Paso 1 — Credenciales (identidad + SQL + Gateway)  
+   - Paso 2 — Pruebas (SQL, Gateway)  
+   - Paso 3 — Instalar (binarios, `appsettings.local.json`, servicio)  
+   - Paso 4 — Resultado  
+
+5. Con paquete MVP **self-contained** (instalador + agente, C1 TR-004): si falta Desktop, MUST aviso + reinicio + SHOULD oferta; **Continuar** solo con ACK explícito (no silenciar). Si el agente pasa a FDD, reabrir bloqueo duro.
+
+### SHOULD
+
+6. **Ofrecer instalar** el runtime si falta: descarga oficial Microsoft (URL/`winget`). Redist embebido = fase siguiente.
+
+### Restricción de empaquetado
+
+7. Instalador publish **self-contained** win-x64 para garantizar arranque del asistente (C1 Q5).
+
+No sustituye documentar el prerrequisito en HU-008; lo refuerza en la UI.
+
+---
 
 Plantillas y runbooks de este repo: **sin Tailscale** y **sin fallback SQL** para modo agente. El trabajo Laravel (TR-001 / TR-007 / TR-008) se hace en `PaqSuite-IA-TANGO`.

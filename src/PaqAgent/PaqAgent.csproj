@@ -22,6 +22,9 @@
     <ProjectReference Include="..\PaqContracts\PaqContracts.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="PaqAgent.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <None Update="appsettings.local.json.example">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

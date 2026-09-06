@@ -9,7 +9,7 @@ internal static class SqlConnectionStringFactory
     {
         var builder = new SqlConnectionStringBuilder
         {
-            DataSource = sql.Server,
+            DataSource = ResolveDataSource(sql),
             InitialCatalog = sql.Database,
             UserID = sql.User,
             Password = sql.Password,
@@ -18,5 +18,16 @@ internal static class SqlConnectionStringFactory
             ConnectTimeout = connectTimeoutSeconds
         };
         return builder.ConnectionString;
+    }
+
+    internal static string ResolveDataSource(SqlOptions sql)
+    {
+        var server = (sql.Server ?? "").Trim();
+        if (sql.Port is > 0 && !server.Contains('\\', StringComparison.Ordinal))
+        {
+            return $"{server},{sql.Port.Value}";
+        }
+
+        return server;
     }
 }

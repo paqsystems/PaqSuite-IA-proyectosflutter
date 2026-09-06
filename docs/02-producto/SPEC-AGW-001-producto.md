@@ -6,9 +6,10 @@
 | Producto | PAQSuite IA — Agente local Tango |
 | Versión | 1.2 |
 | Fecha | 2026-09-04 |
-| Estado | Vigente MVP (debates D1–D16). Slice HU-001 cerrado; foco actual = Gateway (HU-002) |
-| Repos | este (`PaqSuite-IA-AgenteCliente-PAQ`: `PaqGateway` / `PaqContracts`); contrato Laravel en `PaqSuite-IA-TANGO` |
-| HU/TR Gateway | [HU-002](../03-historias-usuario/001-Conectividad/HU-002-gateway-aws.md) → [TR-002](../04-tareas/001-Conectividad/TR-002-paqgateway-app.md) (app) + [TR-003](../04-tareas/001-Conectividad/TR-003-deploy-gateway-aws.md) (deploy AWS) |
+| Estado | Vigente MVP (debates D1–D19). D10 paso 7 = instalador |
+| Repos | este (`PaqSuite-IA-AgenteCliente-PAQ`: Gateway / Agente / Instalador); contrato Laravel en `PaqSuite-IA-TANGO` |
+| HU/TR Gateway | [HU-002](../03-historias-usuario/001-Conectividad/HU-002-gateway-aws.md) → [TR-002](../04-tareas/001-Conectividad/TR-002-paqgateway-app.md) + [TR-003](../04-tareas/001-Conectividad/TR-003-deploy-gateway-aws.md) |
+| HU/TR Instalador | [HU-003](../03-historias-usuario/001-Conectividad/HU-003-auto-instalador.md) → [TR-004](../04-tareas/001-Conectividad/TR-004-auto-instalador.md) |
 
 **No** usar [SPEC-AGW-002](agente-gateway/SPEC-AGW-002-ciclo-sql-y-updates.md) para el Gateway: ese placeholder es **Fase 2/3** (update + objetos SQL), no el MVP de conectividad.
 
@@ -130,7 +131,7 @@ El instalador es un .exe Windows, se ejecuta como Administrador, y **debe pedir 
 | AgentId | Obligatorio |
 | ClientId | Obligatorio |
 | AgentToken | Obligatorio, password-char, **sin valor por defecto** |
-| Gateway URL | Obligatorio; default de fábrica `https://gateway.paqsuite.com/agent-hub` |
+| Gateway URL | Obligatorio; default de fábrica `https://gateway.paqsystems.com/agent-hub` |
 
 ### SQL local (las conoce el administrador del servidor Tango)
 
@@ -144,6 +145,7 @@ El instalador es un .exe Windows, se ejecuta como Administrador, y **debe pedir 
 
 ### Acciones del instalador
 
+0. **Prerrequisito runtime (D19 / C1 TR-004):** al inicio del asistente, detectar .NET 8 Desktop Runtime x64. Si falta: aviso claro; **SHOULD** ofrecer instalarlo (descarga oficial); avisar que **puede requerirse reiniciar el servidor**. Con paquete self-contained (instalador + agente), Continuar exige ACK explícito del aviso; no silenciar el mensaje.
 1. Validar que ningún campo obligatorio esté vacío.
 2. **Probar conexión SQL** antes de instalar. Si falla, no instala (no crea servicio).
 3. **Probar salida al Gateway** (HTTPS/WSS al hub). Si falla, **aborta sin crear el servicio Windows** ni dejar instalación a medias. Mensaje claro (DNS/TLS/443 saliente).
@@ -166,7 +168,7 @@ Alcance de producto (MVP). Construcción en dos TRs: **TR-002** = aplicación .N
 ### 6.1 Despliegue y red
 
 - Una instancia (MVP) en la **misma VPC** que Laravel. Sin Redis backplane / multi-instancia (fase 2).
-- Producción: HTTPS/WSS en 443 (`gateway.paqsuite.com`); hub SignalR `/agent-hub`.
+- Producción: HTTPS/WSS en 443 (`gateway.paqsystems.com`); hub SignalR `/agent-hub`.
 - Lab/dev: hub en `http://127.0.0.1:5100/agent-hub` (D8). No Tailscale.
 - Kestrel interno; Nginx o ALB termina TLS y hace upgrade WebSocket.
 - Security Group: **443** alcanzable desde Internet (agentes); **SQL 1433 no** abierto a Internet; `/internal/*` solo desde red privada / SG de Laravel.
@@ -269,7 +271,7 @@ El agente **no ejecuta SQL libre**. Solo operaciones de lista blanca → stored 
 5. `empresas_conexion` del piloto tiene `agent_id` y **no requiere** `host`.
 6. Con `agent_id` y servicio detenido → `AGENT_OFFLINE`; **no** SQL por IP.
 7. Gateway en AWS con HTTPS; no en PC de desarrollo.
-8. Instalador: sin AgentToken o SQL fail → no crea servicio; gateway fail → aborta salvo override (D14).
+8. Instalador: sin AgentToken o SQL fail → no crea servicio; gateway fail → aborta salvo override (D14); sin .NET 8 Desktop → aviso claro + posible reinicio, no avanza (D19).
 9. Tenant sin `agent_id` puede seguir en SQL directo (transición); no invalida el piloto agente.
 
 ### Anexo — Matriz de aceptación (Codex A-01…A-10)

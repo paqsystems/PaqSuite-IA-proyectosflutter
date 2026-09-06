@@ -3,7 +3,7 @@
 | Campo | Valor |
 |-------|--------|
 | Identificador | HU-007 |
-| Estado | Especificado |
+| Estado | Finalizado |
 | Épica | MVP conectividad (001-Conectividad) |
 | Prioridad | MUST |
 | Roles | Usuario de PaqSuite |
@@ -43,4 +43,4 @@ Feature: Corte duro modo agente
     Then Laravel puede usar SQL directo (transición MVP)
 ```
 
-Siguiente: humano puede marcar **Finalizado** (salvedad HTTP e2e Tailscale). Luego D10 siguiente HU.
+Siguiente D10: **HU-008** (documentación instalación).

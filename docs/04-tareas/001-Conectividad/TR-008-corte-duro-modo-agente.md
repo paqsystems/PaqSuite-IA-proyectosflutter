@@ -3,7 +3,7 @@
 | Campo | Valor |
 |-------|--------|
 | TR | TR-008 |
-| Estado | Pendiente de Revisión |
+| Estado | Finalizado |
 | HU | [HU-007](../../03-historias-usuario/001-Conectividad/HU-007-corte-duro-modo-agente.md) |
 | **Repo** | **`PaqSuite-IA-TANGO`** (no se scaffoldea ni implementa en este repo) |
 | Orden D10 | 6 |
@@ -52,4 +52,4 @@
 | Archivos | `AuthController.php`; logs Pedidos/Stock/Saldos/Clientes/Comprobantes/Articulos/Robinet*; tests `AuthControllerLoginAgentOfflineTest`, `AgentModeNoSqlFallbackControlTest` |
 | Comandos | PHPUnit TR-008 → **8 passed** (D y F1); `rg "fallback a SQL directo"` → 0; Tinker AuthService offline → 5030; Gateway `jobs/send` `01OFFLINE` → `offline`/`AGENT_OFFLINE`, luego `success` con agente up |
 | Notas | Lab: liberar `:8000` de smoke FRAMEWORK. Tenancy modo agente sin SQL aplicado (nota 20260905). HTTP `tecser` → 5030 AGENT_OFFLINE en `:8002`. Sin commit aún. |
-| Pendientes | Commit TANGO / docs ciclo cuando lo pidan; **Finalizado** solo humano; tenancy sin SQL modo agente **aplicado en TANGO** (`ResolveTenant`/`ResolveDictionaryConnection`) — **después** revisar el mismo comportamiento en **PaqSuite-IA-FRAMEWORK** |
+| Pendientes | Commit docs Finalizado cuando lo pidan; follow-up FRAMEWORK tenancy (nota 20260905) |

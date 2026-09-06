@@ -5,6 +5,7 @@
   "gatewayUrl": "http://127.0.0.1:5100/agent-hub",
   "sql": {
     "server": "",
+    "port": null,
     "database": "",
     "user": "",
     "password": "",

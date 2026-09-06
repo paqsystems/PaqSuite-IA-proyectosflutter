@@ -26,6 +26,9 @@ public sealed class SqlOptions
     public string User { get; set; } = "";
     public string Password { get; set; } = "";
 
+    /// <summary>Opcional. Si tiene valor y Server no es named instance (sin '\'), se usa host,port.</summary>
+    public int? Port { get; set; }
+
     /// <summary>Lab SSMS “Opcional” ⇒ false. Producción: true.</summary>
     public bool Encrypt { get; set; }
 
