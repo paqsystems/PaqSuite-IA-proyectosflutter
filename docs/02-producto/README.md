@@ -3,7 +3,7 @@
 | Campo | Valor |
 |-------|--------|
 | Modo | AGENTE-GATEWAY |
-| SPEC MVP | [SPEC-AGW-001-producto.md](SPEC-AGW-001-producto.md) |
+| SPEC MVP | [SPEC-AGW-001-producto.md](SPEC-AGW-001-producto.md) (v1.3) |
 | Fases 1–2–3 | [fases-roadmap.md](fases-roadmap.md) |
 | Decisiones | [decisiones-tecnicas.md](decisiones-tecnicas.md) |
 

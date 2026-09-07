@@ -15,6 +15,7 @@ La documentación normativa vive en `docs/`:
 | Open SPEC | [docs/05-open-spec/001-Conectividad/](../../05-open-spec/001-Conectividad/) |
 | Operación | [docs/06-operacion/](../../06-operacion/) |
 | Informe 08 | [docs/08-control/08-informe-revision-ambiguedad.md](../../08-control/08-informe-revision-ambiguedad.md) |
+| Manual del programador | [MANUAL-DEL-PROGRAMADOR.md](../../00-contexto/MANUAL-DEL-PROGRAMADOR.md) |
 | Prompts de IA | [prompts/](../../../prompts/) |
 
 ## Qué queda aquí

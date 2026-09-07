@@ -55,4 +55,5 @@ El trabajo Laravel **no vive en este repo**. Se especifica aquí (mismos IDs de 
 | Archivo | Para qué |
 |---------|----------|
 | [00-contexto-reformulacion.md](00-contexto-reformulacion.md) | Por qué se reformula, qué falló, objetivo real |
+| [MANUAL-DEL-PROGRAMADOR.md](MANUAL-DEL-PROGRAMADOR.md) | Concepto, técnico, install Gateway (EC2), alta de cliente, D9; §§ 4.d / 5 / 6 = futuro |
 | [../02-producto/fases-roadmap.md](../02-producto/fases-roadmap.md) | Fase 1 MVP caño · Fase 2 update agente · Fase 3 objetos SQL |

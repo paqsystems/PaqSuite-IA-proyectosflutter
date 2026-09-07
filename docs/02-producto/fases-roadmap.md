@@ -37,7 +37,7 @@ Un cliente en **modo agente**, sin Tailscale y sin IP obligatoria en `empresas_c
 
 - PaqGateway + PaqAgent + instalador (MUST al cierre) + contrato Laravel en TANGO.
 - Un SP piloto embebido OK; **no** migraciones masivas de esquema PQ.
-- Descarga pública del instalador (releases) + SHA256.
+- Descarga pública del instalador desde TANGO: un `PaqAgentSetup.exe` + SHA256 (D9). URL exacta = Q-D9-1.
 
 ### No entra (queda para fases 2 / 3)
 
@@ -72,7 +72,7 @@ Canal para que cada instalación sepa que hay una versión nueva del agente (y, 
 
 ### Dependencia
 
-Fase 1 aceptada. Releases públicas del instalador ya existen (D9).
+Fase 1 aceptada. El canal público TANGO del instalador ya existe (D9).
 
 ---
 

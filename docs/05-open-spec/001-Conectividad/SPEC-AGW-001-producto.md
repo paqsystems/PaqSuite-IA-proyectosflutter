@@ -2,7 +2,7 @@
 
 Copia de trazabilidad SDD. **Fuente canónica:**
 
-**[docs/02-producto/SPEC-AGW-001-producto.md](../../02-producto/SPEC-AGW-001-producto.md)** (v1.2 — §6 Gateway expandido 2026-09-04)
+**[docs/02-producto/SPEC-AGW-001-producto.md](../../02-producto/SPEC-AGW-001-producto.md)** (v1.3 — D9 reabierto 2026-09-06: `PaqAgentSetup.exe` público en TANGO; Q-D9-1 URL exacta pendiente)
 
 Épica: 001-Conectividad. Identificador SPEC-AGW-001. Si este archivo y el canónico divergen, manda el canónico.
 

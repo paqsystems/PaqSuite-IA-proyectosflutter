@@ -16,7 +16,7 @@ Reformulación SDD de **PaqAgent + PaqGateway** (agente Windows saliente + gatew
 
 | Carpeta | Contenido |
 |---------|-----------|
-| [docs/00-contexto/](docs/00-contexto/) | Circuito SDD + DoD MVP |
+| [docs/00-contexto/](docs/00-contexto/) | Circuito SDD + DoD MVP + [manual del programador](docs/00-contexto/MANUAL-DEL-PROGRAMADOR.md) |
 | [docs/01-arquitectura/](docs/01-arquitectura/) | Diagrama y responsabilidades |
 | [docs/02-producto/](docs/02-producto/) | SPEC-AGW-001 + decisiones |
 | [docs/03-historias-usuario/001-Conectividad/](docs/03-historias-usuario/001-Conectividad/) | HU-001…HU-008 (orden D10) |

@@ -4,7 +4,7 @@
 |-------|--------|
 | Estado | Instructivo **final** (HU-008 / TR-009) |
 | Público objetivo | Administrador del servidor SQL del cliente |
-| Descarga | GitHub Releases (público) — [urls-deploy.md](urls-deploy.md) |
+| Descarga | Landing pública TANGO — [urls-deploy.md](urls-deploy.md) (D9; URL exacta = Q-D9-1) |
 | Empaquetado (build) | [empaquetado-instalador.md](empaquetado-instalador.md) |
 | Gateway (operador) | [deploy-gateway-aws.md](deploy-gateway-aws.md) |
 | Lab desarrollo | [lab-local.md](lab-local.md) |
@@ -21,8 +21,8 @@ Copiable para el operador PaqSystems + admin del servidor:
 2. Confirmar Gateway de producción reachable: `https://gateway.paqsystems.com/agent-hub`.
 3. Entregar al admin del servidor: los tres valores + esta guía + URL de descarga.
 4. En el servidor Windows del cliente: instalar **.NET 8 Desktop Runtime x64** si el instalador lo pide (o ya está).
-5. Descargar el zip desde `releases/latest`, verificar **SHA256**, descomprimir.
-6. Ejecutar `PaqAgentInstaller.exe` **como Administrador**.
+5. Descargar **`PaqAgentSetup.exe`** desde la landing TANGO, verificar **SHA256**, ejecutar (no descomprimir).
+6. Ejecutar `PaqAgentSetup.exe` **como Administrador**.
 7. Completar el asistente: runtime → credenciales (identidad + SQL + Gateway) → Probar SQL → Probar Gateway → Instalar.
 8. Verificar servicio Windows **`PaqAgent`** en estado **Running** (inicio automático).
 9. Confirmar en PaqSuite que el agente aparece **online** (heartbeat; TTL ~90 s).
@@ -34,23 +34,25 @@ Copiable para el operador PaqSystems + admin del servidor:
 
 | Ítem | Valor |
 |------|-------|
-| Canal | GitHub Releases (repo público) |
-| URL canónica | https://github.com/paqsystems/PaqSuite-IA-proyectosflutter/releases/latest |
-| Asset típico | `PaqAgentInstaller-win-x64.zip` |
-| Integridad | SHA256 en notas de la release o archivo `SHA256SUMS` (D9) |
+| Canal | Landing **pública** TANGO (Laravel / PaqSuite), sin login (D9) |
+| URL canónica | `https://<host-tango>/descargas/agente` (**Q-D9-1** — host exacto pendiente; ver [urls-deploy.md](urls-deploy.md)) |
+| Asset | `PaqAgentSetup.exe` (un solo exe autoejecutable; PaqAgent va embebido) |
+| Integridad | SHA256 en la misma página o archivo `PaqAgentSetup.exe.sha256` (D9) |
 | Gateway URL por defecto en el instalador | `https://gateway.paqsystems.com/agent-hub` (editable) |
 | Carpeta de instalación por defecto | `C:\PaqSystems\PaqAgent` |
 
-Cada servidor nuevo se instala desde esa URL; **no** hace falta clonar el código ni Visual Studio.
+Cada servidor nuevo se instala desde esa URL; **no** hace falta clonar el código, Visual Studio ni descomprimir un zip.
 
 Verificar SHA256 (PowerShell):
 
 ```powershell
-Get-FileHash .\PaqAgentInstaller-win-x64.zip -Algorithm SHA256
-# Comparar con el hash publicado en la release
+Get-FileHash .\PaqAgentSetup.exe -Algorithm SHA256
+# Comparar con el hash publicado en la landing TANGO
 ```
 
-Si el nombre del repo o del asset cambia, actualizar solo [urls-deploy.md](urls-deploy.md) y esta sección.
+Si el host o el path de la landing cambian, actualizar solo [urls-deploy.md](urls-deploy.md), D9 y esta sección. El formato del artefacto (un exe) no se reabre.
+
+Justificación (GitHub/zip/SFX): [MANUAL-DEL-PROGRAMADOR](../00-contexto/MANUAL-DEL-PROGRAMADOR.md) § D9.
 
 ---
 

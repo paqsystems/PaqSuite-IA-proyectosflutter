@@ -261,6 +261,6 @@ Publish/systemd ya documentados en §10; no duplicar secretos aquí.
 - Plantillas: [deploy/](deploy/)
 - URLs: [urls-deploy.md](urls-deploy.md)
 - Instalador cliente: [instalacion-agente.md](instalacion-agente.md)
-- Empaquetado zip: [empaquetado-instalador.md](empaquetado-instalador.md)
+- Empaquetado instalador: [empaquetado-instalador.md](empaquetado-instalador.md) (`PaqAgentSetup.exe`)
 - Lab: [lab-local.md](lab-local.md)
 - App Gateway: TR-002 (`src/PaqGateway`)

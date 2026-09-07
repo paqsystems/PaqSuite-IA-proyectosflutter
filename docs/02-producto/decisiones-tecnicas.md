@@ -2,8 +2,8 @@
 
 | Campo | Valor |
 |-------|--------|
-| Fecha | 2026-09-03 |
-| Estado | Vigente para el MVP |
+| Fecha | 2026-09-06 |
+| Estado | Vigente para el MVP (D9 reabierto 2026-09-06) |
 | Relacionado | [SPEC-AGW-001-producto.md](SPEC-AGW-001-producto.md) |
 
 Toda implementación que viole una decisión de este archivo se rechaza. Si hay que cambiarla, se actualiza **este** documento primero.
@@ -159,19 +159,59 @@ No hay entorno “PC del programador + Tailscale + SQL de cliente real” como c
 
 ---
 
-## D9 — Descarga del instalador (MVP)
+## D9 — Descarga del instalador (cerrado 2026-09-06; URL exacta pendiente)
 
-El repo de GitHub es público. El MVP usa:
+### Decisión
+
+El administrador del servidor Tango descarga **un solo archivo autoejecutable**:
 
 ```text
-https://github.com/paqsystems/paqsuite-IA-AgenteCliente/releases/latest
+PaqAgentSetup.exe
 ```
 
-Assets: `PaqAgentInstaller.zip` (el .exe que el cliente corre) y, si aplica, runtime .NET 8 Desktop documentado.
+Reglas:
 
-Cada release **debe** publicar el **SHA256** del asset en las notas de release (o archivo `SHA256SUMS`). Firma Authenticode / attestation = fase 2. No depender ciegamente de `latest` sin checksum verificable.
+1. **Un exe, no un zip de cara al cliente.** Doble clic → UAC → asistente. No descomprimir a mano. Si hace falta comprimir por tamaño, el zip vive **dentro** del exe (payload embebido) y se extrae al instalar.
+2. El payload embebido es el publish **self-contained win-x64** de `PaqAgent` (carpeta `agent/` del empaquetado lab). El instalador lo materializa en el directorio de instalación. En laboratorio se admite carpeta `agent/` adyacente al exe (sin payload).
+3. **Canal canónico de cara al cliente:** página **pública** (sin login) en **TANGO** (Laravel / PaqSuite). El token **no** va en la URL; se carga en el asistente tras el alta.
+4. Cada publicación **debe** mostrar el **SHA256** del exe en esa página (y archivo `PaqAgentSetup.exe.sha256`). Firma Authenticode / attestation = fase 2.
+5. GitHub Releases puede quedar como origen de **CI/ops interno**. **No** es la URL que se le manda al administrador del servidor Tango.
+6. El binario **no** se commitea en git de TANGO ni de este repo. Se genera con `scripts/pack-installer.ps1` y se sube a disco Forge / S3; TANGO lo sirve o redirige.
+7. Un botón “Descargar agente” **dentro** de PaqSuite (sesión logueada), si se agrega, apunta a la **misma** URL pública. No es requisito del MVP.
 
-Fase 2: botón “Descargar agente” dentro de PaqSuite que apunte a ese release o a un bucket propio. No bloquea el MVP.
+### Prohibido
+
+- Zip suelto (`.zip`) como artefacto que el cliente debe abrir.
+- Autoextraíble / SFX de 7-Zip o WinRAR (falso positivo de antivirus; el admin sigue viendo un paso intermedio).
+- Hostear el instalador en el **SQL Server / Tango del cliente**.
+- Exigir cuenta PaqSuite para bajar el exe.
+- Poner AgentId / AgentToken en la URL de descarga.
+
+### URL canónica (pregunta abierta Q-D9-1)
+
+El host y el path exactos los fija el operador. Hasta entonces, placeholder:
+
+```text
+https://<host-tango>/descargas/agente
+https://<host-tango>/descargas/agente/PaqAgentSetup.exe
+```
+
+La landing muestra versión, fecha, SHA256, enlace al instructivo y el botón de descarga. Cuando se cierre Q-D9-1, actualizar **solo**: este D9, [urls-deploy.md](../06-operacion/urls-deploy.md) y [instalacion-agente.md](../06-operacion/instalacion-agente.md). No reabrir el formato del artefacto.
+
+### Qué construye cada repo
+
+| Repo | Qué |
+|------|-----|
+| Este (`PaqSuite-IA-AgenteCliente-PAQ`) | Empaquetado: `PaqAgentSetup.exe` + SHA256 ([empaquetado-instalador.md](../06-operacion/empaquetado-instalador.md)) |
+| `PaqSuite-IA-TANGO` | Landing pública + servir o redirigir el exe (sin meter el binario en git) |
+
+### Justificación
+
+El razonamiento (por qué TANGO y no GitHub, por qué un exe y no zip/SFX, por qué público y sin token en la URL) vive en [MANUAL-DEL-PROGRAMADOR](../00-contexto/MANUAL-DEL-PROGRAMADOR.md) § D9. Este archivo guarda la **decisión**; el manual guarda el **porqué**.
+
+### Superado
+
+Texto D9 del 2026-09-03: zip en GitHub `releases/latest` como canal MVP; botón PaqSuite en fase 2. Reemplazado por este D9.
 
 ---
 

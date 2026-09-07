@@ -309,7 +309,7 @@ public sealed class WizardForm : Form
             Dock = DockStyle.Fill,
             AutoSize = false,
             Text =
-                "Se copiarán los binarios desde la carpeta 'agent' junto al instalador,"
+                "Se copiarán los binarios del agente (paquete embebido o carpeta 'agent' de laboratorio),"
                 + Environment.NewLine
                 + "se escribirá appsettings.local.json y se creará el servicio Windows 'PaqAgent' (start=auto)."
                 + Environment.NewLine
@@ -453,8 +453,7 @@ public sealed class WizardForm : Form
             }
         }
 
-        var sourceAgent = AgentFilesCopier.ResolveBundledAgentDirectory();
-        AgentFilesCopier.CopyAgentFiles(sourceAgent, target);
+        AgentFilesCopier.InstallAgentBinaries(target);
         AppSettingsLocalWriter.Write(session, target);
         var exe = AgentFilesCopier.FindAgentExecutable(target);
         var serviceResult = WindowsServiceInstaller.InstallAndStart(exe);

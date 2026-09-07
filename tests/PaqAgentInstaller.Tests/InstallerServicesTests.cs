@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using PaqAgentInstaller.Models;
 using PaqAgentInstaller.Services;
 
@@ -99,5 +100,106 @@ public class RuntimeDetectorTests
     {
         var result = RuntimeDetector.DetectDotNet8DesktopX64();
         Assert.False(string.IsNullOrWhiteSpace(result.Message));
+    }
+}
+
+public class AgentFilesCopierTests
+{
+    [Fact]
+    public void InstallAgentBinaries_copia_carpeta_adjacente()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "paq-agent-copy-" + Guid.NewGuid().ToString("N"));
+        var agent = Path.Combine(root, "agent");
+        var target = Path.Combine(root, "dest");
+        try
+        {
+            Directory.CreateDirectory(agent);
+            File.WriteAllText(Path.Combine(agent, "PaqAgent.exe"), "fake");
+            AgentFilesCopier.InstallAgentBinaries(target, root);
+            Assert.True(File.Exists(Path.Combine(target, "PaqAgent.exe")));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public void ExtractAgentZip_extrae_paqagent()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "paq-agent-zip-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var payload = Path.Combine(root, "payload");
+            Directory.CreateDirectory(payload);
+            File.WriteAllText(Path.Combine(payload, "PaqAgent.exe"), "fake");
+            var zipPath = Path.Combine(root, "p.zip");
+            ZipFile.CreateFromDirectory(payload, zipPath);
+            var dest = Path.Combine(root, "dest");
+            using (var stream = File.OpenRead(zipPath))
+            {
+                AgentFilesCopier.ExtractAgentZip(stream, dest);
+            }
+
+            Assert.True(File.Exists(Path.Combine(dest, "PaqAgent.exe")));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public void ExtractAgentZip_rechaza_path_traversal()
+    {
+        using var memory = new MemoryStream();
+        using (var archive = new ZipArchive(memory, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            var entry = archive.CreateEntry(@"..\evil.exe");
+            using var writer = entry.Open();
+            writer.WriteByte(1);
+        }
+
+        memory.Position = 0;
+        var dest = Path.Combine(Path.GetTempPath(), "paq-zip-slip-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(dest);
+        try
+        {
+            Assert.Throws<InvalidOperationException>(() => AgentFilesCopier.ExtractAgentZip(memory, dest));
+        }
+        finally
+        {
+            if (Directory.Exists(dest))
+            {
+                Directory.Delete(dest, recursive: true);
+            }
+        }
+    }
+
+    [Fact]
+    public void InstallAgentBinaries_falla_sin_agent_ni_payload()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "paq-agent-empty-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        var dest = Path.Combine(root, "dest");
+        try
+        {
+            var ex = Assert.Throws<DirectoryNotFoundException>(
+                () => AgentFilesCopier.InstallAgentBinaries(dest, root));
+            Assert.Contains("PaqAgentSetup", ex.Message, StringComparison.Ordinal);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+            {
+                Directory.Delete(root, recursive: true);
+            }
+        }
     }
 }

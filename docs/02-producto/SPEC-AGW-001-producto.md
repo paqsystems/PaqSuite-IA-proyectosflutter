@@ -4,9 +4,9 @@
 |-------|--------|
 | Identificador | SPEC-AGW-001 |
 | Producto | PAQSuite IA — Agente local Tango |
-| Versión | 1.2 |
-| Fecha | 2026-09-04 |
-| Estado | Vigente MVP (debates D1–D19). D10 paso 7 = instalador |
+| Versión | 1.3 |
+| Fecha | 2026-09-06 |
+| Estado | Vigente MVP (D1–D19; D9 reabierto 2026-09-06). URL pública exacta = Q-D9-1 |
 | Repos | este (`PaqSuite-IA-AgenteCliente-PAQ`: Gateway / Agente / Instalador); contrato Laravel en `PaqSuite-IA-TANGO` |
 | HU/TR Gateway | [HU-002](../03-historias-usuario/001-Conectividad/HU-002-gateway-aws.md) → [TR-002](../04-tareas/001-Conectividad/TR-002-paqgateway-app.md) + [TR-003](../04-tareas/001-Conectividad/TR-003-deploy-gateway-aws.md) |
 | HU/TR Instalador | [HU-003](../03-historias-usuario/001-Conectividad/HU-003-auto-instalador.md) → [TR-004](../04-tareas/001-Conectividad/TR-004-auto-instalador.md) |
@@ -150,14 +150,36 @@ El instalador es un .exe Windows, se ejecuta como Administrador, y **debe pedir 
 2. **Probar conexión SQL** antes de instalar. Si falla, no instala (no crea servicio).
 3. **Probar salida al Gateway** (HTTPS/WSS al hub). Si falla, **aborta sin crear el servicio Windows** ni dejar instalación a medias. Mensaje claro (DNS/TLS/443 saliente).
 4. Override opcional (checkbox avanzado, default desmarcado): “Instalar de todos modos; el agente reintentará”. Solo entonces se permite instalar con gateway fallido.
-5. Copiar binarios (desde el ZIP embebido o release).
+5. Copiar binarios del agente (payload **embebido** en `PaqAgentSetup.exe`; en lab se admite carpeta `agent/` junto al exe).
 6. Escribir `appsettings.local.json` (no se pisa en updates).
 7. Registrar e iniciar el servicio Windows (`start= auto`) **solo** tras SQL OK y (gateway OK o override explícito).
 8. Mostrar resultado: servicio running + “esperando aparecer online en PaqSuite”.
 
 No pide IP pública. No pide Tailscale. No pide nada de AWS.
 
-Cada release publica **SHA256** del zip/exe en las notas (firma criptográfica = fase 2).
+Cada publicación del instalador publica **SHA256** del exe en la landing TANGO (firma criptográfica = fase 2).
+
+### 5.1 Distribución del instalador (D9)
+
+El cliente recibe **un** archivo autoejecutable `PaqAgentSetup.exe` (no zip suelto, no SFX 7-Zip/WinRAR). Lo descarga de una **URL pública** en TANGO (Laravel / PaqSuite), sin login y **sin** token en la URL.
+
+| Ítem | Valor |
+|------|--------|
+| Artefacto | `PaqAgentSetup.exe` (instalador SC + PaqAgent embebido) |
+| Canal cliente | Landing pública TANGO |
+| Integridad MVP | SHA256 en la misma página |
+| Placeholder URL (Q-D9-1) | `https://<host-tango>/descargas/agente` |
+| Build | Este repo: [empaquetado-instalador.md](../06-operacion/empaquetado-instalador.md) |
+| Hosting del archivo | TANGO (Forge/S3); **no** git; **no** el SQL del cliente |
+| GitHub Releases | Solo CI/ops interno; no es la URL del administrador Tango |
+
+Justificación larga: [MANUAL-DEL-PROGRAMADOR](../00-contexto/MANUAL-DEL-PROGRAMADOR.md) § D9.
+
+### 5.2 Preguntas abiertas (D9 — no inventar)
+
+| ID | Tema | Notas |
+|----|------|--------|
+| Q-D9-1 | Host y path exactos de la URL pública TANGO | Placeholder `https://<host-tango>/descargas/agente`. Cerrar actualizando D9 + `urls-deploy.md` + `instalacion-agente.md` |
 
 ---
 
@@ -248,7 +270,7 @@ El agente **no ejecuta SQL libre**. Solo operaciones de lista blanca → stored 
 - Alta en `empresas_conexion` sin `host` obligatorio para modo agente; 1 agente por tenant.
 - Laravel: enviar job + consultar status por Gateway cuando hay `agent_id`.
 - Operaciones: `diagnostics.run` y piloto **`auth.login`** (SP piloto embebido OK; no migraciones masivas).
-- Documentación de instalación + SHA256 en releases.
+- Documentación de instalación + SHA256 en la landing TANGO (D9). Artefacto: un `PaqAgentSetup.exe` autoejecutable.
 - Convivencia temporal: tenants **sin** `agent_id` siguen pudiendo usar SQL directo hasta la transformación total.
 
 ### No entra (fase 2)
@@ -259,6 +281,12 @@ El agente **no ejecuta SQL libre**. Solo operaciones de lista blanca → stored 
 - Cache de resultados; Tailscale como feature.
 - Fallback SQL de un tenant ya en modo agente.
 - Eliminar por completo el camino SQL directo de todos los tenants (corte final post-transformación).
+
+### No entra (D9 — no es “fase 2”)
+
+- Zip suelto o SFX 7-Zip/WinRAR como entrega al cliente.
+- Hostear el exe en el SQL Server / Tango del cliente.
+- Exigir login para descargar el instalador; poner el token en la URL.
 
 ---
 
@@ -273,6 +301,7 @@ El agente **no ejecuta SQL libre**. Solo operaciones de lista blanca → stored 
 7. Gateway en AWS con HTTPS; no en PC de desarrollo.
 8. Instalador: sin AgentToken o SQL fail → no crea servicio; gateway fail → aborta salvo override (D14); sin .NET 8 Desktop → aviso claro + posible reinicio, no avanza (D19).
 9. Tenant sin `agent_id` puede seguir en SQL directo (transición); no invalida el piloto agente.
+10. El administrador descarga **un** `PaqAgentSetup.exe` público desde TANGO (D9); verifica SHA256; no descomprime zip; no usa GitHub como canal de cliente. URL exacta = Q-D9-1.
 
 ### Anexo — Matriz de aceptación (Codex A-01…A-10)
 
@@ -299,7 +328,7 @@ El agente **no ejecuta SQL libre**. Solo operaciones de lista blanca → stored 
 - Lista blanca de operaciones. Cero SQL concatenado.
 - SQL Server no expuesto a Internet.
 - API interna Gateway ↔ Laravel con API key; no pública.
-- SHA256 del instalador publicado en cada release.
+- SHA256 del instalador (`PaqAgentSetup.exe`) publicado en la landing TANGO (D9).
 
 ---
 
@@ -336,4 +365,5 @@ Sin observabilidad mínima no se soporta un cliente. Con lo de arriba alcanza el
 | Gateway reiniciado con jobs en vuelo | `cancelled` auditado; sin reentrega silenciosa |
 | Tango con esquemas distintos | Un SP piloto versionado; migraciones masivas fuera del runtime |
 | Instalador “exitoso” sin caño | Prueba gateway + abort sin servicio (D14) |
+| Paquete incompleto o zip mal extraído en el servidor Tango | Un solo `PaqAgentSetup.exe` con payload embebido (D9); SHA256 en la landing |
 | Expansión de operaciones antes del caño | Prohibido; solo `diagnostics.run` + `auth.login` |
