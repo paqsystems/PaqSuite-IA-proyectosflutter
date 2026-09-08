@@ -19,6 +19,9 @@ Si una justificación de este archivo choca con el SPEC, **manda el SPEC**. Se a
 | § | Tema | Para quién |
 |---|------|------------|
 | [Vocabulario](#vocabulario-tres-nombres-que-se-parecen) | TANGO vs Tango vs Gateway | Todos |
+| [adaptar-un-host-al-agente.md](adaptar-un-host-al-agente.md) | Host vs agente vs Framework, dual-mode, qué se actualiza | Producto / programador host |
+| [plan integración 100%](../08-control/plan-20260908-integracion-tango-framework-agente.md) | Framework + Agente + Tango: F0–F9 plataforma, D1–D6 dominio | Producto / tech lead |
+| [arranque SDD Agente](../08-control/sdd-arranque-integracion-agente-plan-100.md) | Qué SDD correr en este repo (ops); enlaces FW/Tango | Producto / tech lead |
 | [1. Concepto y esquema](#1-definición-conceptual-y-esquemática) | Cómo funciona el sistema completo | Todos |
 | [2. Explicación técnica](#2-explicación-técnica--cómo-está-desarrollado) | Código, contratos, repos | Programador |
 | [3. Instalación del Gateway](#3-instalación-del-gateway-tarea-de-una-sola-vez) | EC2, Nginx, TLS, systemd | Soporte / ops (reconstruir AWS) |
@@ -833,8 +836,7 @@ Con los tres valores del artisan, en el Windows **al lado de SQL** (o en un Wind
    | Gateway URL | `https://gateway.paqsystems.com/agent-hub` (default de fábrica) |
    | SQL | Servidor, base **diccionario**, usuario y clave **locales** |
    | Puerto | Vacío = 1433; instancia con `\` no precisa puerto |
-   | encrypt | Como SSMS; en lab suele ir **desmarcado** |
-   | trustServerCertificate | En lab, marcado |
+   | encrypt / trustServerCertificate | **Igual que SSMS** en esa conexión: Cifrar Opcional → encrypt off; el tilde “certificado de confianza” se copia tal cual. Ver [instalacion-agente.md](../06-operacion/instalacion-agente.md) §3.1 |
    | Directorio | Default `C:\PaqSystems\PaqAgent` |
 
 5. Probar SQL → Probar Gateway → Instalar.

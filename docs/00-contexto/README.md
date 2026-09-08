@@ -56,4 +56,5 @@ El trabajo Laravel **no vive en este repo**. Se especifica aquí (mismos IDs de 
 |---------|----------|
 | [00-contexto-reformulacion.md](00-contexto-reformulacion.md) | Por qué se reformula, qué falló, objetivo real |
 | [MANUAL-DEL-PROGRAMADOR.md](MANUAL-DEL-PROGRAMADOR.md) | Concepto, técnico, install Gateway (EC2), alta de cliente, D9; §§ 4.d / 5 / 6 = futuro |
+| [adaptar-un-host-al-agente.md](adaptar-un-host-al-agente.md) | Lenguaje natural: adaptar Tango (u otro host) al agente; qué se actualiza en el .exe vs SQL vs credenciales; dual-mode |
 | [../02-producto/fases-roadmap.md](../02-producto/fases-roadmap.md) | Fase 1 MVP caño · Fase 2 update agente · Fase 3 objetos SQL |

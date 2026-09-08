@@ -27,11 +27,13 @@ En SSMS, conectado a **esa** base diccionario:
 
 ## Conexión desde el agente vs SSMS
 
+`encrypt` y `trustServerCertificate` se determinan **según el acceso por SSMS** que ya funciona (Cifrar Opcional/Obligatorio y el tilde de certificado). Detalle: [instalacion-agente.md](../../../docs/06-operacion/instalacion-agente.md) §3.1.
+
 Si SSMS entra con cifrado **Opcional** y el agente falla en handshake SSL (`SQL_UNREACHABLE`), en `appsettings.local.json`:
 
 ```json
 "encrypt": false,
-"trustServerCertificate": true
+"trustServerCertificate": false
 ```
 
-Reiniciar PaqAgent después de cambiar el JSON.
+(Si el certificado lo exige, `trustServerCertificate: true`.) Reiniciar PaqAgent después de cambiar el JSON.

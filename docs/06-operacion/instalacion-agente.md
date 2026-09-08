@@ -80,8 +80,23 @@ El paquete del instalador es **self-contained**; igual conviene tener Desktop Ru
 | Gateway URL | Default de fábrica prod; lab puede usar `http://127.0.0.1:5100/agent-hub` |
 | Servidor / base / usuario / contraseña SQL | Admin del servidor (SQL local del cliente) |
 | Puerto SQL | Opcional (vacío = 1433); si el servidor es instancia con `\`, no hace falta puerto |
-| encrypt / trustServerCertificate | Avanzado; defaults del asistente: true / true (lab puede desmarcar encrypt) |
+| encrypt / trustServerCertificate | **Copiar SSMS** (ver §3.1). No usar el default del asistente a ciegas |
 | Dir. instalación | Default `C:\PaqSystems\PaqAgent` |
+
+### 3.1 encrypt y trustServerCertificate (según SSMS)
+
+Los dos tildes del instalador **no se inventan**. Se copian de la conexión que ya funciona en SSMS (o Azure Data Studio) contra **ese** SQL:
+
+| En SSMS | En el instalador |
+|---------|------------------|
+| Cifrar = **Opcional** (o deshabilitado) | **encrypt** desmarcado |
+| Cifrar = **Obligatorio** / Strict | **encrypt** marcado |
+| Certificado de servidor de confianza = **sin tilde** | **trustServerCertificate** desmarcado |
+| Certificado de servidor de confianza = **con tilde** | **trustServerCertificate** marcado |
+
+Si “Probar SQL” falla con handshake SSL / `SQL_UNREACHABLE` y SSMS entra con Cifrar **Opcional**: desmarcar encrypt. `trustServerCertificate` solo importa cuando encrypt está marcado (certificado de fábrica / autofirmado).
+
+En la base del instalador poner el **nombre exacto del diccionario**, no “predeterminado”.
 
 ---
 
@@ -129,7 +144,7 @@ En PaqSuite: el cliente/agente debe figurar **online** tras el heartbeat (TTL de
 |---------|-----------|
 | Instalador no abre / UAC | Ejecutar como Administrador |
 | Paso 0: falta runtime | Instalar Desktop 8 x64; reinicio posible; volver a detectar |
-| Probar SQL falla | Servidor/base/usuario/clave; firewall local; puerto; encrypt/trust |
+| Probar SQL falla | Servidor/base/usuario/clave; firewall local; puerto; **encrypt/trust copiados de SSMS** (§3.1) |
 | Probar Gateway falla | DNS, TLS, salida **443**; URL correcta; no usar IP Tailscale |
 | No crea el servicio | No avanzar sin SQL OK (y Gateway OK u override); elevación admin |
 | Servicio no parte | `Get-Service PaqAgent`; Event Viewer; `appsettings.local.json` junto al exe |
