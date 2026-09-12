@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Options;
 using PaqAgent.Auth;
 using PaqAgent.Diagnostics;
+using PaqAgent.Menu;
 using PaqAgent.Options;
 using PaqContracts;
 
@@ -24,6 +25,7 @@ public sealed class AgentGatewayConnector : BackgroundService
     private readonly TimeProvider timeProvider;
     private readonly DiagnosticsRunner diagnosticsRunner;
     private readonly AuthLoginRunner authLoginRunner;
+    private readonly MenuAuthorizedRunner menuAuthorizedRunner;
     private HubConnection? hubConnection;
     private string readiness = "network_ok";
     private readonly string agentVersion;
@@ -34,13 +36,15 @@ public sealed class AgentGatewayConnector : BackgroundService
         ILogger<AgentGatewayConnector> logger,
         TimeProvider timeProvider,
         DiagnosticsRunner diagnosticsRunner,
-        AuthLoginRunner authLoginRunner)
+        AuthLoginRunner authLoginRunner,
+        MenuAuthorizedRunner menuAuthorizedRunner)
     {
         this.agentOptions = agentOptions.Value;
         this.logger = logger;
         this.timeProvider = timeProvider;
         this.diagnosticsRunner = diagnosticsRunner;
         this.authLoginRunner = authLoginRunner;
+        this.menuAuthorizedRunner = menuAuthorizedRunner;
         agentVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0";
         machineName = Environment.MachineName;
     }
@@ -260,6 +264,26 @@ public sealed class AgentGatewayConnector : BackgroundService
                 DurationMs = (long)(timeProvider.GetUtcNow() - started).TotalMilliseconds
             };
         }
+        else if (string.Equals(request.Operation, JobOperations.MenuAuthorized, StringComparison.Ordinal))
+        {
+            logger.LogInformation(
+                "Ejecutando menu.authorized jobId={JobId} traceId={TraceId}",
+                request.JobId,
+                request.TraceId);
+            var outcome = await menuAuthorizedRunner
+                .RunAsync(agentOptions, request.Parameters, request.TimeoutSeconds, CancellationToken.None)
+                .ConfigureAwait(false);
+            result = new JobResult
+            {
+                TraceId = request.TraceId,
+                JobId = request.JobId,
+                Status = outcome.Status,
+                Data = outcome.Data,
+                ErrorCode = outcome.ErrorCode,
+                ErrorMessage = outcome.ErrorMessage,
+                DurationMs = (long)(timeProvider.GetUtcNow() - started).TotalMilliseconds
+            };
+        }
         else if (readiness is "network_ok")
         {
             result = new JobResult
@@ -281,7 +305,7 @@ public sealed class AgentGatewayConnector : BackgroundService
                 Status = JobStatuses.Failed,
                 ErrorCode = "OPERATION_NOT_ALLOWED",
                 ErrorMessage =
-                    $"operation '{request.Operation}' not in whitelist (MVP: {JobOperations.DiagnosticsRun}, {JobOperations.AuthLogin})",
+                    $"operation '{request.Operation}' not in whitelist (MVP: {JobOperations.DiagnosticsRun}, {JobOperations.AuthLogin}, {JobOperations.MenuAuthorized})",
                 DurationMs = (long)(timeProvider.GetUtcNow() - started).TotalMilliseconds
             };
         }

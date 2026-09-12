@@ -39,6 +39,7 @@ public static class JobOperations
 {
     public const string DiagnosticsRun = "diagnostics.run";
     public const string AuthLogin = "auth.login";
+    public const string MenuAuthorized = "menu.authorized";
 }
 
 public sealed class JobRequest

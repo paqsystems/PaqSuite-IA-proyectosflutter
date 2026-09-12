@@ -3,7 +3,7 @@
 | Campo | Valor |
 |-------|--------|
 | TR | TR-009 |
-| Estado | Pendiente de Revisión |
+| Estado | Finalizado |
 | HU | [HU-008](../../03-historias-usuario/001-Conectividad/HU-008-documentacion-instalacion.md) |
 | Repo | este (`docs/06-operacion/`) |
 | Orden D10 | 8 |

@@ -18,12 +18,20 @@ En SSMS, conectado a **esa** base diccionario:
 1. `2026_06_23_000000_b_ensure_users_columns.sql`
 2. `2026_06_24_000001_create_paq_auth_login.sql`
 3. `2026_06_29_000002_fix_col_rol_pk_fallback.sql`
+4. `2026_09_12_000003_create_paq_user_menu_authorized.sql`
 
-## Contrato del SP
+## Contrato `PAQ_Auth_Login`
 
 - Parámetro: `@Codigo` = código Tango (`USERS.codigo`), **no** el login SQL (`sql.user`).
 - 2 result sets: header + empresas.
 - El SP **no** recibe password; Laravel hace `Hash::check` sobre `password_hash`.
+
+## Contrato `PAQ_User_Menu_Authorized`
+
+- Parámetros: `@UserId`, `@EmpresaId` (job `menu.authorized`: `user_id`, `empresa_id`).
+- 2 result sets: header (`status`, `empresa_id`, `acceso_total`, `error_message`) + items.
+- Lógica alineada a `UserMenuQuery` del host (acceso total / `pq_rol_atributo` + ancestros).
+- Payload agente → Laravel: `empresaId`, `accesoTotal`, `items[]`, `procedimientos[]`.
 
 ## Conexión desde el agente vs SSMS
 

@@ -2,6 +2,7 @@ using Microsoft.Extensions.Options;
 using PaqAgent;
 using PaqAgent.Auth;
 using PaqAgent.Diagnostics;
+using PaqAgent.Menu;
 using PaqAgent.Options;
 using Serilog;
 
@@ -20,6 +21,8 @@ builder.Services.AddSingleton<ISqlConnectionPinger, SqlConnectionPinger>();
 builder.Services.AddSingleton<DiagnosticsRunner>();
 builder.Services.AddSingleton<IAuthLoginSpExecutor, SqlAuthLoginSpExecutor>();
 builder.Services.AddSingleton<AuthLoginRunner>();
+builder.Services.AddSingleton<IMenuAuthorizedSpExecutor, SqlMenuAuthorizedSpExecutor>();
+builder.Services.AddSingleton<MenuAuthorizedRunner>();
 builder.Services.AddWindowsService(options =>
 {
     options.ServiceName = "PaqAgent";
