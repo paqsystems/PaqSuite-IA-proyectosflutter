@@ -7,7 +7,7 @@
 | Alcance | Producto Tango **completo** en modo agente + path sin agente (MUST SP / GEN-18) |
 | Estado de partida | Login agente OK (`auth.login` + `agw.`); canal `laravel-core` 1.3.7; dual-path parcial en Tango; agente solo `diagnostics.run` + `auth.login`; shell bloqueado por `ValidateCompanyId` → 403 |
 
-Este documento es la hoja de ruta de integración. No sustituye SPEC-AGW-001 ni GEN-18.
+> **Hoja de ruta activa (2026-09-12):** [plan-20260912-desarrollo-hibrido-plataforma-dominio.md](./plan-20260912-desarrollo-hibrido-plataforma-dominio.md) + inventario [f0-20260912-inventario-dual-path.md](./f0-20260912-inventario-dual-path.md). Este documento queda como contexto histórico; F1–F3 ya cerrados.
 
 ```text
 Framework (plataforma + canal)  →  Host Tango (dominio + adopción SDK)  →  Agente (SQL whitelist)
