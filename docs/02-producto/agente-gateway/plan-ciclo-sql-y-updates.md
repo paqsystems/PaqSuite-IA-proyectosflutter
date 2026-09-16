@@ -3,7 +3,7 @@
 | Campo | Valor |
 |-------|--------|
 | Fecha | 2026-09-03 |
-| Estado | Análisis vigente — **no altera** SPEC-AGW-001 ni decisiones D1–D17 del MVP de conectividad |
+| Estado | Análisis vigente — **no altera** SPEC-AGW-001 ni decisiones D1–D17 del MVP de conectividad. Dirección de producto 2026-09-13: insumos Paso A [insumo-spec-agw-002-update-agente.md](insumo-spec-agw-002-update-agente.md) + [insumo-spec-agw-002-objetos-sql.md](insumo-spec-agw-002-objetos-sql.md); relatos [circuito-actualizacion-agente-funcional.md](../circuito-actualizacion-agente-funcional.md) y [circuito-objetos-sql-agente-funcional.md](../circuito-objetos-sql-agente-funcional.md) |
 | Alcance | Fase 2 / SPEC-AGW-002 (borrador de dirección) |
 | Referencias | GEN-18 Framework (`SPEC-001-18`), SPEC-AGW-001 en esta carpeta |
 

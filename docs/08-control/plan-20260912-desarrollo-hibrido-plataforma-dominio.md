@@ -102,18 +102,23 @@ Contrato JSON → dual-path host (ya en muchos) → JobOperations + handler + te
 
 ---
 
-## 4. Secuencia recomendada (para tu análisis)
+## 4. Secuencia recomendada (aceptada)
 
 | Paso | Qué | Por qué |
 |------|-----|---------|
-| **0** | Aceptar este plan (o ajustar prioridad D1 vs F4) | Gobernanza |
-| **1** | **F4** SDD en Framework (SPEC-update / HU / TR) | Quita PDO del shell |
-| **2** | Adopción F4 Tango + ops Agente si el SPEC lo exige | Lab post-login limpio |
-| **3** | **D1** (1–2 ops piloto, luego resto D1) | Valor negocio sin esperar F9 |
-| **4** | F5 ↔ D2 según pantallas que rompan por layouts | Intercalar |
+| **0** | ~~Aceptar este plan~~ — **Aceptado 2026-09-12** | Gobernanza |
+| **1** | **F4 completo** SDD en Framework → Tango → Agente | Quita PDO del shell (params/prefs/warmup) |
+| **2** | F1 + F de F4 en los 3 repos (apto) | Cierre plataforma |
+| **3** | **Recién entonces D1** (piloto + resto oleada) | Valor negocio sobre shell estable |
+| **4** | F5 ↔ D2 según pantallas | Intercalar |
 | **5** | F6–F9 y D3–D6 | Según dependencia y demanda |
 
-**Pregunta abierta para vos:** ¿preferís **F4 completo antes de cualquier D1**, o **F4 mínimo (solo warmup anti-PDO) + D1 piloto en paralelo**?
+### Decisión humana (2026-09-12)
+
+**F4 completo antes de D1.** No abrir oleada dominio hasta F4 con evidencia F1/F apta (o acuerdo explícito posterior que la revierta).
+
+~~Pregunta abierta: ¿F4 completo antes de D1, o F4 mínimo + D1 en paralelo?~~ → resuelta: **F4 completo primero**.
+
 
 ---
 
@@ -129,7 +134,8 @@ Contrato JSON → dual-path host (ya en muchos) → JobOperations + handler + te
 
 ## 6. Criterios de avance
 
-- No abrir F5 si F4 no tiene F1/F apto (o acuerdo explícito de “F4 mínimo”).
+- No abrir **ninguna** oleada Dx (incluido D1) hasta F4 con F1/F apto.
+- No abrir F5 si F4 no tiene F1/F apto (salvo acuerdo explícito).
 - No abrir D2 masivo si D1 no tiene al menos un piloto verde en lab.
 - Cada Fx y cada Dx: circuito A→…→F1→F en el repo dueño; Finalizado solo humano.
 - Lab: path-repo Framework; no commit de secretos / `appsettings` locales.
@@ -148,3 +154,4 @@ Auto-update del .exe; bootstrap masivo DDL/seeds en todos los SQL cliente.
 |-------|--------|
 | 2026-09-08 | Plan 100% inicial (F0–F9 + D1–D6) |
 | 2026-09-12 | F0 inventariado; F1–F3 cerrados; plan híbrido activo; F4 + D1 como próximos |
+| 2026-09-12 | Decisión: **F4 completo antes de D1** |

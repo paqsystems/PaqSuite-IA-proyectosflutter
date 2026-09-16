@@ -1,0 +1,21 @@
+CREATE OR ALTER PROCEDURE dbo.PAQ_PartesProduccion_MaquinasGet
+    @IdMaquina INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF OBJECT_ID(N'dbo.PQ_PRD_MAQUINAS', N'U') IS NULL
+    BEGIN
+        SELECT CAST(NULL AS INT) AS id WHERE 1 = 0;
+        RETURN;
+    END
+
+    SELECT TOP 1
+        CAST(ID_MAQUINA AS INT) AS id,
+        LTRIM(RTRIM(CAST(CODIGO_MAQUINA AS NVARCHAR(20)))) AS codigo,
+        LTRIM(RTRIM(CAST(NOMBRE AS NVARCHAR(100)))) AS nombre,
+        CAST(ISNULL(ACTIVA, 0) AS BIT) AS activa
+    FROM dbo.PQ_PRD_MAQUINAS
+    WHERE ID_MAQUINA = @IdMaquina;
+END
+GO

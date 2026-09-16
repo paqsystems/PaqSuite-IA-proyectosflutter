@@ -1,0 +1,5 @@
+-- Nota D6.4.3 — OrdenesCompra.Update (orquestado en agente; sin SP único aún)
+-- Op Gateway: OrdenesCompra.Update
+-- Runner: OrdenesCompraUpdateRunner (TX patch + respuesta vía Get)
+-- Fuera MVP: cambio nOrdenCo, alta/baja renglones, planes replace, CPA104
+-- Siguiente libre documentación SP: 000056

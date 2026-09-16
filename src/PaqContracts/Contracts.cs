@@ -39,7 +39,17 @@ public static class JobOperations
 {
     public const string DiagnosticsRun = "diagnostics.run";
     public const string AuthLogin = "auth.login";
+    public const string AuthChangePassword = "auth.changePassword";
     public const string MenuAuthorized = "menu.authorized";
+    public const string ClientesBuscar = "clientes.buscar";
+    public const string ClientesObtener = "clientes.obtener";
+    public const string ArticulosBuscar = "articulos.buscar";
+    public const string ArticulosObtener = "articulos.obtener";
+    public const string StockConsultar = "stock.consultar";
+    public const string SaldosConsultar = "saldos.consultar";
+    public const string PedidosPendientes = "pedidos.pendientes";
+    public const string ComprobantesRecientes = "comprobantes.recientes";
+    public const string TangoVersion = "tango.version";
 }
 
 public sealed class JobRequest

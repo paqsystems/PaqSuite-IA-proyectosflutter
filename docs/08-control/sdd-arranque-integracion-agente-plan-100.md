@@ -13,7 +13,7 @@ El **tablero** del plan 100% vive en este repo; el SDD de plataforma (F1–F9 pa
 
 **Cómo arrancar un chat:** Cursor en **AgenteCliente** (modo AGENTE-GATEWAY) → “Hacé el paso A” / kickoff citando la oleada **Dx** o la op de plataforma que toque SQL.
 
-**Hoy en whitelist:** `diagnostics.run`, `auth.login` solamente.
+**Hoy en whitelist:** shell + D1–D5 + **D6 PedidosVenta / OrdenesCompra / MovimientosTesoreria / AsientosContables / Partes maestros+OT+Asignaciones + PartesOperario cabecera/transiciones/listados + Entradas.List/Create/Update/Delete/Reclasificar**.
 
 ---
 

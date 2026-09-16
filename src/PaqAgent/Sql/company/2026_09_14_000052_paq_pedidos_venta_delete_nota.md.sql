@@ -1,0 +1,4 @@
+-- Nota D6.3b — PedidosVenta.Delete (orquestado en agente; sin SP único aún)
+-- Op Gateway: PedidosVenta.Delete
+-- Runner: PedidosVentaDeleteRunner (TX: precondicion + mantPed anula/borrado + STA19)
+-- Siguiente libre documentación SP: 000053

@@ -25,6 +25,10 @@ Análisis y fase 2 (no alteran el MVP de conectividad):
 | Archivo | Para qué |
 |---------|----------|
 | [plan-ciclo-sql-y-updates.md](plan-ciclo-sql-y-updates.md) | Análisis fase 2 SQL/update |
+| [../circuito-actualizacion-agente-funcional.md](../circuito-actualizacion-agente-funcional.md) | Relato funcionales: oleadas, handshake, staff, Forge |
+| [../circuito-objetos-sql-agente-funcional.md](../circuito-objetos-sql-agente-funcional.md) | Relato funcionales: objetos SQL en el mismo exe |
+| [insumo-spec-agw-002-update-agente.md](insumo-spec-agw-002-update-agente.md) | Insumo Paso A (frente C; especificar junto al A) |
+| [insumo-spec-agw-002-objetos-sql.md](insumo-spec-agw-002-objetos-sql.md) | Insumo Paso A (frente A; MULTI/MONO, install/update, alta empresa) |
 | [SPEC-AGW-002-ciclo-sql-y-updates.md](SPEC-AGW-002-ciclo-sql-y-updates.md) | Placeholder SPEC fase 2 |
 | [codex-definicion.md](codex-definicion.md) | Spec alternativa Codex (referencia) |
 | [03-historias-usuario.md](03-historias-usuario.md) | Puntero al árbol HU |

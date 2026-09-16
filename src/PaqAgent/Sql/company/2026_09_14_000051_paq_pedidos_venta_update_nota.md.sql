@@ -1,0 +1,5 @@
+-- Nota D6.3 — PedidosVenta.Update (orquestado en agente; sin SP único aún)
+-- Op Gateway: PedidosVenta.Update
+-- Runner: PedidosVentaUpdateRunner (TX company + patch GVA21/GVA03/STA19 + respuesta vía Get)
+-- Fuera MVP: Delta6 reemplazar, maestros codVended/codTransp en patch
+-- Siguiente libre documentación SP: 000051

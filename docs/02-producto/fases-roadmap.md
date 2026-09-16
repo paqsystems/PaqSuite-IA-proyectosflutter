@@ -6,15 +6,15 @@
 | Estado | Vigente — mapa de alcance (no sustituye los SPEC) |
 | Modo | AGENTE-GATEWAY |
 
-Tres fases **secuenciales**. No mezclar alcance: primero el caño, después update del binario, después el dueño de los objetos SQL.
+Tres fases **secuenciales en valor**. El caño (Fase 1) no se mezcla. Fase 2 y Fase 3 se **especifican juntas** (SPEC-AGW-002) y se **implementan por slices**.
 
 ```text
 Fase 1 — MVP caño          →  SPEC-AGW-001  (ahora)
-Fase 2 — Update del agente →  parte de SPEC-AGW-002
-Fase 3 — Objetos SQL       →  parte de SPEC-AGW-002 (decisión formal)
+Fase 2 — Update del agente →  SPEC-AGW-002 frente C
+Fase 3 — Objetos SQL       →  SPEC-AGW-002 frente A  (mismo SPEC; mismo exe)
 ```
 
-Análisis previo (no altera el MVP): [agente-gateway/plan-ciclo-sql-y-updates.md](agente-gateway/plan-ciclo-sql-y-updates.md).
+Análisis previo (no altera el MVP): [agente-gateway/plan-ciclo-sql-y-updates.md](agente-gateway/plan-ciclo-sql-y-updates.md). Dirección 2026-09-13: [circuito-actualizacion-agente-funcional.md](circuito-actualizacion-agente-funcional.md), [circuito-objetos-sql-agente-funcional.md](circuito-objetos-sql-agente-funcional.md), [agente-gateway/insumo-spec-agw-002-update-agente.md](agente-gateway/insumo-spec-agw-002-update-agente.md), [agente-gateway/insumo-spec-agw-002-objetos-sql.md](agente-gateway/insumo-spec-agw-002-objetos-sql.md).
 
 ---
 
@@ -65,9 +65,9 @@ Canal para que cada instalación sepa que hay una versión nueva del agente (y, 
 - Señal clara: “hay update” (UI, log, status en PaqSuite).
 - Más adelante: auto-update o flujo asistido de descarga/reinstalación (firma Authenticode = no MVP).
 
-### No incluye
+### No incluye (como entrega de código del primer slice)
 
-- Aplicar DDL/seeds masivos en SQL (eso es Fase 3).
+- El runner SQL completo de familias PQ GEN puede ir **después** del handshake en código; el SPEC **sí** lo describe (mismo exe, misma oleada).
 - Reabrir el diseño del caño de Fase 1.
 
 ### Dependencia
@@ -76,28 +76,32 @@ Fase 1 aceptada. El canal público TANGO del instalador ya existe (D9).
 
 ---
 
-## Fase 3 — Objetos SQL: ¿agente o host?
+## Fase 3 — Objetos SQL: los aplica el agente
 
 **SPEC (a formalizar):** mismo SPEC-AGW-002 — frente **A** del plan (bootstrap / update SQL PQ).
 
-### La pregunta
+### La pregunta (cerrada en insumo)
 
 En **modo agente**, Laravel en AWS **no tiene** connection string al SQL del cliente. Entonces:
 
-> ¿Quién crea/actualiza tablas, seeds y stored procedures en el SQL del tenant: el **agente** (y/o su instalador) o el **host** Laravel (como en el camino legacy con SQL directo)?
+> ¿Quién crea/actualiza tablas, seeds y stored procedures en el SQL del tenant?
 
-### Dirección ya analizada (pendiente de cierre en SPEC)
+**Respuesta:** el **agente / el mismo instalador**, en el Windows del cliente. El host Laravel solo en camino legacy (sin `agent_id`), según GEN-18.
+
+### Dirección cerrada en insumo (pendiente de SPEC)
 
 | Camino | Quién aplica objetos SQL |
 |--------|---------------------------|
-| Modo agente (`agent_id`) | **En el cliente**: instalador y/o runner del agente. Forge **no** puede `migrate` remoto. |
-| Legacy (sin `agent_id`) | Laravel/Forge puede seguir con SQL directo hasta la transformación (D5). |
+| Modo agente (`agent_id`) | **En el cliente**: mismo `PaqAgentSetup.exe` (fase SQL) y/o runner del agente. Forge **no** puede `migrate` remoto. |
+| Legacy (sin `agent_id`) | Laravel/Forge puede seguir con SQL directo hasta la transformación (D5 / GEN-18). |
 
-Fase 3 **define y especifica** (HU/TR): mismo instalador en dos fases (conectividad vs esquema PQ), versión de esquema deseada, alta de empresa, etc. No se improvisa en runtime de Fase 1.
+MULTI vs MONO, install vs update, alta de empresa: [circuito-objetos-sql-agente-funcional.md](circuito-objetos-sql-agente-funcional.md). Insumo Paso A: [agente-gateway/insumo-spec-agw-002-objetos-sql.md](agente-gateway/insumo-spec-agw-002-objetos-sql.md).
+
+Fase 3 **se especifica junto** a Fase 2. En código: slices (handshake primero; runner PQ completo después). No se improvisa en runtime de Fase 1.
 
 ### Dependencia
 
-Fase 1 verde. Conviene tener al menos el **reconocimiento de versión** (Fase 2) esbozado, porque el esquema PQ también versiona; pueden solaparse en el mismo SPEC-002 pero **no** en la misma entrega que el MVP.
+Fase 1 verde. Fase 2 y 3 se especifican en el mismo SPEC-002. En código conviene el reconocimiento de versión **antes** o junto al runner SQL completo.
 
 ---
 
@@ -107,7 +111,7 @@ Fase 1 verde. Conviene tener al menos el **reconocimiento de versión** (Fase 2)
 |------|--------------|------------------------|-----------|
 | **1** | Caño | ¿Laravel habla con Tango sin VPN ni IP del cliente? | SPEC-AGW-001 |
 | **2** | Update agente | ¿Cada instalación sabe / puede actualizar el binario? | SPEC-AGW-002 (frente C) |
-| **3** | Objetos SQL | ¿Agente/instalador o host Laravel aplica el esquema PQ? | SPEC-AGW-002 (frente A) |
+| **3** | Objetos SQL | ¿El instalador/agente aplica el esquema en el cliente? (sí, modo agente) | SPEC-AGW-002 (frente A) |
 
 Trabajo Laravel del contrato del MVP: repo **PaqSuite-IA-TANGO**.  
 Este repo: agente, gateway, instalador, docs.

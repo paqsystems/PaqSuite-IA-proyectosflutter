@@ -1,0 +1,5 @@
+-- Nota D6.4.2 — OrdenesCompra.Create (orquestado en agente; sin SP único aún)
+-- Op Gateway: OrdenesCompra.Create
+-- Runner: OrdenesCompraCreateRunner (TX CPA56/CPA35/CPA36 + STA19)
+-- Fuera MVP: CPA44 precio lista, ocasional 000000, renglones solo-texto, CPA104
+-- Siguiente libre documentación SP: 000055

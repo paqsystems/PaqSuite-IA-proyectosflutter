@@ -1,0 +1,4 @@
+-- Nota D6.4.4 — OrdenesCompra.Delete (orquestado en agente; sin SP único aún)
+-- Op Gateway: OrdenesCompra.Delete
+-- Runner: OrdenesCompraDeleteRunner (anulación estado+4 + STA19; no físico)
+-- Siguiente libre documentación SP: 000057

@@ -1,0 +1,23 @@
+CREATE OR ALTER PROCEDURE dbo.PAQ_PartesProduccion_TurnosGet
+    @IdTurno INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF OBJECT_ID(N'dbo.PQ_PRD_TURNOS', N'U') IS NULL
+    BEGIN
+        SELECT CAST(NULL AS INT) AS id WHERE 1 = 0;
+        RETURN;
+    END
+
+    SELECT TOP 1
+        CAST(ID_TURNO AS INT) AS id,
+        LTRIM(RTRIM(CAST(CODIGO_TURNO AS NVARCHAR(20)))) AS codigo,
+        LTRIM(RTRIM(CAST(NOMBRE AS NVARCHAR(50)))) AS nombre,
+        CONVERT(VARCHAR(8), HORA_INICIO, 108) AS hora_inicio,
+        CONVERT(VARCHAR(8), HORA_FIN, 108) AS hora_fin,
+        CAST(ISNULL(ACTIVO, 0) AS BIT) AS activo
+    FROM dbo.PQ_PRD_TURNOS
+    WHERE ID_TURNO = @IdTurno;
+END
+GO

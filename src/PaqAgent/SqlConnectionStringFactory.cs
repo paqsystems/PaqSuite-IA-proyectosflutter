@@ -5,12 +5,26 @@ namespace PaqAgent;
 
 internal static class SqlConnectionStringFactory
 {
-    public static string Build(SqlOptions sql, int connectTimeoutSeconds)
+    public static string Build(SqlOptions sql, int connectTimeoutSeconds, string? databaseOverride = null)
     {
+        var catalog = string.IsNullOrWhiteSpace(databaseOverride)
+            ? sql.Database
+            : databaseOverride.Trim();
+
+        if (string.IsNullOrWhiteSpace(catalog))
+        {
+            throw new InvalidOperationException("InitialCatalog / _database no puede ser vacío.");
+        }
+
+        if (catalog.IndexOfAny([';', '=', '"']) >= 0)
+        {
+            throw new InvalidOperationException("Nombre de base (_database) inválido.");
+        }
+
         var builder = new SqlConnectionStringBuilder
         {
             DataSource = ResolveDataSource(sql),
-            InitialCatalog = sql.Database,
+            InitialCatalog = catalog,
             UserID = sql.User,
             Password = sql.Password,
             Encrypt = sql.Encrypt,
